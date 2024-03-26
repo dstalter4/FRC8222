@@ -1,2 +1,1 @@
-# FRC8222
-FRC Team 8222 C++ robot code. 
+# FRC 8222 Robot Code
