@@ -32,16 +32,18 @@
 #include "frc/motorcontrol/Spark.h"             // for creating an object to interact with the rev blinkin
 #include "frc/smartdashboard/SendableChooser.h" // for using the smart dashboard sendable chooser functionality
 #include "frc/smartdashboard/SmartDashboard.h"  // for interacting with the smart dashboard
+#include "rev/CANSparkMax.h"                    // for interacting with spark max motor controllers
 
 // C++ INCLUDES
 #include "DriveConfiguration.hpp"               // for information on the drive config
-#include "CmsdController.hpp"               // for controller interaction
-#include "CmsdTalon.hpp"                    // for custom Talon control
+#include "CmsdController.hpp"                   // for controller interaction
+#include "CmsdTalon.hpp"                        // for custom Talon control
 #include "RobotUtils.hpp"                       // for ASSERT, DEBUG_PRINTS
 #include "SwerveDrive.hpp"                      // for using swerve drive
 #include "ctre/phoenix6/Pigeon2.hpp"            // for PigeonIMU
 
 using namespace frc;
+using namespace rev;
 
 
 ////////////////////////////////////////////////////////////////
@@ -181,6 +183,11 @@ private:
     
     // Main sequence for vision processing
     void CameraSequence();
+
+    // Superstructure control routines
+    void IntakeSequence();
+    void ArmSequence();
+    void LaunchSequence();
     
     // MEMBER VARIABLES
     
@@ -196,7 +203,12 @@ private:
     SwerveDrive *                   m_pSwerveDrive;                         // Swerve drive control
     
     // Motors
-    // (none)
+    CANSparkMax * m_pIntakeSpark;
+    CANSparkMax * m_pLaunch1Spark;
+    CANSparkMax * m_pLaunch2Spark;
+    CANSparkMax * m_pArmSpark;
+    SparkRelativeEncoder m_ArmSparkEncoder;
+    SparkPIDController m_ArmPidController;
 
     // LEDs
     // (none)

@@ -37,8 +37,14 @@ CmsdRobot::CmsdRobot() :
     m_AutonomousChooser                 (),
     m_pDriveController                  (new DriveControllerType(DRIVE_CONTROLLER_MODEL, DRIVE_JOYSTICK_PORT)),
     m_pAuxController                    (new AuxControllerType(AUX_CONTROLLER_MODEL, AUX_JOYSTICK_PORT)),
-    m_pPigeon                           (new Pigeon2(PIGEON_CAN_ID, "canivore-8145")),
+    m_pPigeon                           (new Pigeon2(PIGEON_CAN_ID, "canivore-8222")),
     m_pSwerveDrive                      (new SwerveDrive(m_pPigeon)),
+    m_pIntakeSpark                      (new CANSparkMax(9, CANSparkLowLevel::MotorType::kBrushless)),
+    m_pLaunch1Spark                     (new CANSparkMax(10, CANSparkLowLevel::MotorType::kBrushless)),
+    m_pLaunch2Spark                     (new CANSparkMax(11, CANSparkLowLevel::MotorType::kBrushless)),
+    m_pArmSpark                         (new CANSparkMax(12, CANSparkLowLevel::MotorType::kBrushless)),
+    m_ArmSparkEncoder                   (m_pArmSpark->GetEncoder()),
+    m_ArmPidController                  (m_pArmSpark->GetPIDController()),
     m_pDebugOutput                      (new DigitalOutput(DEBUG_OUTPUT_DIO_CHANNEL)),
     m_pCompressor                       (new Compressor(PneumaticsModuleType::CTREPCM)),
     m_pMatchModeTimer                   (new Timer()),
@@ -256,6 +262,10 @@ void CmsdRobot::TeleopPeriodic()
         SwerveDriveSequence();
     }
 
+    IntakeSequence();
+    ArmSequence();
+    LaunchSequence();
+
     //PneumaticSequence();
     
     //CameraSequence();
@@ -276,6 +286,31 @@ void CmsdRobot::UpdateSmartDashboard()
     // @todo: Check if RobotPeriodic() is called every 20ms and use static counter.
     // Give the drive team some state information
     // Nothing to send yet
+}
+
+
+
+void CmsdRobot::IntakeSequence()
+{
+    // Controls from Java program:
+    //  right trigger - intake
+    //  right trigger release - retract
+    //  Y - apply -1.0
+}
+
+void CmsdRobot::ArmSequence()
+{
+    // Controls from Java program:
+    //  left bumper - arm scoring position
+    //  left trigger - intake position
+    //  start button - home position
+}
+
+void CmsdRobot::LaunchSequence()
+{
+    // Controls from Java program:
+    //  right bumper - launch
+    //  A - run intake
 }
 
 

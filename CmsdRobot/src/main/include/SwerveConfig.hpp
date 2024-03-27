@@ -49,8 +49,8 @@ namespace SwerveConfig
     static constexpr double FX_INTEGRATED_SENSOR_UNITS_PER_ROTATION = 2048.0;
     static constexpr double WHEEL_CIRCUMFERENCE = 4.0 * METERS_PER_INCH * M_PI;
 
-    // Distance between front/back wheel centers 23.5_in (0.5969_m)
-    static constexpr const units::meter_t WHEEL_BASE = units::meter_t(23.5 * METERS_PER_INCH);
+    // Distance between front/back wheel centers 21.5_in (0.5461_m)
+    static constexpr const units::meter_t WHEEL_BASE = units::meter_t(21.5 * METERS_PER_INCH);
     // Distance between left/right wheel centers, 21.5_in (0.5461_m)
     static constexpr const units::meter_t TRACK_WIDTH = units::meter_t(21.5 * METERS_PER_INCH);
 

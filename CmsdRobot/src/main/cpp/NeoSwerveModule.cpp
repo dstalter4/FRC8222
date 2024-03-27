@@ -48,7 +48,7 @@ NeoSwerveModule::NeoSwerveModule(SwerveModuleConfig config) :
     m_AngleSparkEncoder(m_pAngleSpark->GetEncoder()),
     m_DrivePidController(m_pDriveSpark->GetPIDController()),
     m_AnglePidController(m_pAngleSpark->GetPIDController()),
-    m_pAngleCanCoder(new CANcoder(config.m_CanCoderId, "canivore-8145")),
+    m_pAngleCanCoder(new CANcoder(config.m_CanCoderId, "canivore-8222")),
     m_AngleOffset(config.m_AngleOffset),
     m_LastAngle(),
     m_pFeedForward(new SimpleMotorFeedforward<units::meters>(KS, KV, KA))
