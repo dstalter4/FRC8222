@@ -23,12 +23,13 @@ import frc.lib.PIDGains;
 public final class Constants {
   public static final class OIConstants {
     public static final int kDriverControllerPort = 0;
+    public static final int kAuxControllerPort = 1;
     public static final double kDriveDeadband = 0.05;
     public static final double kTriggerButtonThreshold = 0.5;
   }
 
   public static final class Arm {
-    public static final int kArmCanId = 7;
+    public static final int kArmCanId = 4;
     public static final boolean kArmInverted = true;
     public static final int kCurrentLimit = 40;
 
@@ -57,7 +58,7 @@ public final class Constants {
   }
 
   public static final class Intake {
-    public static final int kCanId = 9;
+    public static final int kCanId = 3;
     public static final boolean kMotorInverted = true;
     public static final int kCurrentLimit = 80;
 
@@ -72,8 +73,8 @@ public final class Constants {
   }
 
   public static final class Launcher {
-    public static final int kTopCanId = 6;
-    public static final int kBottomCanId = 10;
+    public static final int kTopCanId = 1;
+    public static final int kBottomCanId = 2;
 
     public static final int kCurrentLimit = 80;
 
@@ -92,9 +93,9 @@ public final class Constants {
     public static final double kRotationalSlewRate = 2.0; // percent per second (1 = 100%)
 
     // Chassis configuration
-    public static final double kTrackWidth = Units.inchesToMeters(21.5);
+    public static final double kTrackWidth = Units.inchesToMeters(25.75);
     // Distance between centers of right and left wheels on robot
-    public static final double kWheelBase = Units.inchesToMeters(21.5);
+    public static final double kWheelBase = Units.inchesToMeters(25.5);
     // Distance between front and back wheels on robot
     public static final SwerveDriveKinematics kDriveKinematics =
         new SwerveDriveKinematics(
@@ -104,21 +105,21 @@ public final class Constants {
             new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
 
     // Angular offsets of the modules relative to the chassis in radians
-    public static final double kFrontLeftChassisAngularOffset = -Math.PI / 2;
-    public static final double kFrontRightChassisAngularOffset = 0;
-    public static final double kBackLeftChassisAngularOffset = Math.PI;
-    public static final double kBackRightChassisAngularOffset = Math.PI / 2;
+    public static final double kFrontLeftChassisAngularOffset = 4.708;
+    public static final double kFrontRightChassisAngularOffset = 1.668;
+    public static final double kBackLeftChassisAngularOffset = 1.098;
+    public static final double kBackRightChassisAngularOffset = 1.581;
 
     // SPARK MAX CAN IDs
     public static final int kFrontLeftDrivingCanId = 11;
-    public static final int kRearLeftDrivingCanId = 31;
-    public static final int kFrontRightDrivingCanId = 21;
-    public static final int kRearRightDrivingCanId = 41;
+    public static final int kRearLeftDrivingCanId = 21;
+    public static final int kFrontRightDrivingCanId = 41;
+    public static final int kRearRightDrivingCanId = 31;
 
     public static final int kFrontLeftTurningCanId = 12;
-    public static final int kRearLeftTurningCanId = 32;
-    public static final int kFrontRightTurningCanId = 22;
-    public static final int kRearRightTurningCanId = 42;
+    public static final int kRearLeftTurningCanId = 22;
+    public static final int kFrontRightTurningCanId = 42;
+    public static final int kRearRightTurningCanId = 32;
 
     public static final boolean kGyroReversed = false;
   }
@@ -166,13 +167,13 @@ public final class Constants {
 
     public static final double kTurningP = 1;
     public static final double kTurningI = 0;
-    public static final double kTurningD = 0;
+    public static final double kTurningD = 0.3;
     public static final double kTurningFF = 0;
     public static final double kTurningMinOutput = -1;
     public static final double kTurningMaxOutput = 1;
 
     public static final IdleMode kDrivingMotorIdleMode = IdleMode.kBrake;
-    public static final IdleMode kTurningMotorIdleMode = IdleMode.kBrake;
+    public static final IdleMode kTurningMotorIdleMode = IdleMode.kCoast;
 
     public static final int kDrivingMotorCurrentLimit = 50; // amps
     public static final int kTurningMotorCurrentLimit = 20; // amps

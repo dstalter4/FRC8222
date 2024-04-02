@@ -44,6 +44,7 @@ public class RobotContainer {
 
   // The driver's controller
   XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
+  XboxController m_auxController = new XboxController((OIConstants.kAuxControllerPort));
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -89,34 +90,38 @@ public class RobotContainer {
     new JoystickButton(m_driverController, XboxController.Button.kLeftStick.value)
         .whileTrue(new RunCommand(() -> m_robotDrive.setX(), m_robotDrive));
 
+    // button to zero the gyro
+    new JoystickButton(m_driverController, XboxController.Button.kRightBumper.value)
+        .whileTrue(new RunCommand(() -> m_robotDrive.zeroHeading(), m_robotDrive));
+
     // set up arm preset positions
-    new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
+    new JoystickButton(m_auxController, XboxController.Button.kLeftBumper.value)
         .onTrue(new InstantCommand(() -> m_arm.setTargetPosition(Constants.Arm.kScoringPosition)));
     new Trigger(
             () ->
-                m_driverController.getLeftTriggerAxis()
+                m_auxController.getLeftTriggerAxis()
                     > Constants.OIConstants.kTriggerButtonThreshold)
         .onTrue(new InstantCommand(() -> m_arm.setTargetPosition(Constants.Arm.kIntakePosition)));
-    new JoystickButton(m_driverController, XboxController.Button.kStart.value)
+    new JoystickButton(m_auxController, XboxController.Button.kStart.value)
         .onTrue(new InstantCommand(() -> m_arm.setTargetPosition(Constants.Arm.kHomePosition)));
 
     // intake controls (run while button is held down, run retract command once when the button is
     // released)
     new Trigger(
             () ->
-                m_driverController.getRightTriggerAxis()
+                m_auxController.getRightTriggerAxis()
                     > Constants.OIConstants.kTriggerButtonThreshold)
         .whileTrue(new RunCommand(() -> m_intake.setPower(Constants.Intake.kIntakePower), m_intake))
         .onFalse(m_intake.retract());
 
-    new JoystickButton(m_driverController, XboxController.Button.kY.value)
+    new JoystickButton(m_auxController, XboxController.Button.kY.value)
         .whileTrue(new RunCommand(() -> m_intake.setPower(-1.0)));
 
     // launcher controls (button to pre-spin the launcher and button to launch)
-    new JoystickButton(m_driverController, XboxController.Button.kRightBumper.value)
+    new JoystickButton(m_auxController, XboxController.Button.kRightBumper.value)
         .whileTrue(new RunCommand(() -> m_launcher.runLauncher(), m_launcher));
 
-    new JoystickButton(m_driverController, XboxController.Button.kA.value)
+    new JoystickButton(m_auxController, XboxController.Button.kA.value)
         .onTrue(m_intake.feedLauncher(m_launcher));
   }
 
@@ -168,5 +173,6 @@ public class RobotContainer {
 
     // Run path following command, then stop at the end.
    // return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false, false));
+   return null;
   }
 }
