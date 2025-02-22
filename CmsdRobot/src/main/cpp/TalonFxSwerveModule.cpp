@@ -64,38 +64,40 @@ TalonFxSwerveModule::TalonFxSwerveModule(SwerveModuleConfig config) :
     driveTalonConfig.MotorOutput.NeutralMode = NeutralModeValue::Brake;
     driveTalonConfig.Feedback.SensorToMechanismRatio = SwerveConfig::DRIVE_GEAR_RATIO;
 
-    driveTalonConfig.CurrentLimits.SupplyCurrentLimit = 35.0;
-    driveTalonConfig.CurrentLimits.SupplyCurrentThreshold = 60.0;
-    driveTalonConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
+    driveTalonConfig.CurrentLimits.SupplyCurrentLowerLimit = 35.0_A;
+    driveTalonConfig.CurrentLimits.SupplyCurrentLimit = 60.0_A;
+    driveTalonConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1_s;
     driveTalonConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
 
     driveTalonConfig.Slot0.kP = 0.1;
     driveTalonConfig.Slot0.kI = 0.0;
     driveTalonConfig.Slot0.kD = 0.0;
 
-    driveTalonConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.25;
-    driveTalonConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.25;
+    driveTalonConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.25_s;
+    driveTalonConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 0.25_s;
 
-    driveTalonConfig.ClosedLoopRamps.DutyCycleClosedLoopRampPeriod = 0.0;
-    driveTalonConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 0.0;
+    driveTalonConfig.ClosedLoopRamps.DutyCycleClosedLoopRampPeriod = 0.0_s;
+    driveTalonConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 0.0_s;
 
     (void)m_pDriveTalon->GetConfigurator().Apply(driveTalonConfig);
     (void)m_pDriveTalon->GetConfigurator().SetPosition(0.0_tr);
 
     // @todo: Should the talons change default group status rates to preserve CAN bandwidth?
+    // @todo_phoenix6: The example calls need to be updated.
     //m_pDriveTalon->SetStatusFramePeriod(StatusFrameEnhanced::Status_1_General, 100);
     //m_pDriveTalon->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 100);
 
     // Configure angle motor controller
+    // mk4 swerve uses Clockwise_Positive, mk4n uses CounterClockwise_Positive
     TalonFXConfiguration angleTalonConfig;
-    angleTalonConfig.MotorOutput.Inverted = InvertedValue::Clockwise_Positive;
+    angleTalonConfig.MotorOutput.Inverted = InvertedValue::CounterClockwise_Positive;
     angleTalonConfig.MotorOutput.NeutralMode = NeutralModeValue::Coast;
     angleTalonConfig.Feedback.SensorToMechanismRatio = SwerveConfig::ANGLE_GEAR_RATIO;
     angleTalonConfig.ClosedLoopGeneral.ContinuousWrap = true;
 
-    angleTalonConfig.CurrentLimits.SupplyCurrentLimit = 25.0;
-    angleTalonConfig.CurrentLimits.SupplyCurrentThreshold = 40.0;
-    angleTalonConfig.CurrentLimits.SupplyTimeThreshold = 0.1;
+    angleTalonConfig.CurrentLimits.SupplyCurrentLowerLimit = 25.0_A;
+    angleTalonConfig.CurrentLimits.SupplyCurrentLimit = 40.0_A;
+    angleTalonConfig.CurrentLimits.SupplyCurrentLowerTime = 0.1_s;
     angleTalonConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
 
     // @todo_phoenix6: Tune these, they mostly work.
@@ -107,7 +109,8 @@ TalonFxSwerveModule::TalonFxSwerveModule(SwerveModuleConfig config) :
 
     // Configure CANCoder
     CANcoderConfiguration canCoderConfig;
-    canCoderConfig.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue::Unsigned_0To1;
+    // Per the CTRE documentation: Setting this to 1 makes the absolute position unsigned [0, 1)
+    canCoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1.0_tr;
     canCoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue::CounterClockwise_Positive;
     (void)m_pAngleCanCoder->GetConfigurator().Apply(canCoderConfig);
 
