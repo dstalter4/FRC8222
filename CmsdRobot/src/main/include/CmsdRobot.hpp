@@ -203,12 +203,7 @@ private:
     SwerveDrive *                   m_pSwerveDrive;                         // Swerve drive control
     
     // Motors
-    CANSparkMax * m_pIntakeSpark;
-    CANSparkMax * m_pLaunch1Spark;
-    CANSparkMax * m_pLaunch2Spark;
-    CANSparkMax * m_pArmSpark;
-    SparkRelativeEncoder m_ArmSparkEncoder;
-    SparkPIDController m_ArmPidController;
+    // (none)
 
     // LEDs
     // (none)
