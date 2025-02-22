@@ -32,7 +32,6 @@
 #include "frc/motorcontrol/Spark.h"             // for creating an object to interact with the rev blinkin
 #include "frc/smartdashboard/SendableChooser.h" // for using the smart dashboard sendable chooser functionality
 #include "frc/smartdashboard/SmartDashboard.h"  // for interacting with the smart dashboard
-#include "rev/CANSparkMax.h"                    // for interacting with spark max motor controllers
 
 // C++ INCLUDES
 #include "DriveConfiguration.hpp"               // for information on the drive config
@@ -43,7 +42,6 @@
 #include "ctre/phoenix6/Pigeon2.hpp"            // for PigeonIMU
 
 using namespace frc;
-using namespace rev;
 
 
 ////////////////////////////////////////////////////////////////

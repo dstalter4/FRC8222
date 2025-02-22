@@ -14,7 +14,7 @@
 
 // C INCLUDES
 #include "frc/BuiltInAccelerometer.h"   // for the built-in accelerometer
-#include "rev/CANSparkMax.h"            // for interacting with spark max motor controllers
+#include "rev/SparkMax.h"               // for interacting with spark max motor controllers
 
 // C++ INCLUDES
 #include "RobotUtils.hpp"               // for DisplayMessage(), DisplayFormattedMessage()
@@ -271,8 +271,8 @@ void CmsdRobotTest::CtreSpeedControllerTest()
 ////////////////////////////////////////////////////////////////
 void CmsdRobotTest::RevSpeedControllerTest()
 {
-    static rev::CANSparkMax * pLeftNeo = new rev::CANSparkMax(1, rev::CANSparkLowLevel::MotorType::kBrushless);
-    static rev::CANSparkMax * pRightNeo = new rev::CANSparkMax(2, rev::CANSparkLowLevel::MotorType::kBrushless);
+    static rev::spark::SparkMax * pLeftNeo = new rev::spark::SparkMax(1, rev::spark::SparkMax::MotorType::kBrushless);
+    static rev::spark::SparkMax * pRightNeo = new rev::spark::SparkMax(2, rev::spark::SparkMax::MotorType::kBrushless);
 
     while (m_pJoystick->GetRawButton(1))
     {

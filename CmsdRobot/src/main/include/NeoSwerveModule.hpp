@@ -7,7 +7,7 @@
 ///
 /// Copyright (c) 2024 CMSD
 ////////////////////////////////////////////////////////////////////////////////
-
+#if 0
 #ifndef NEOSWERVEMODULE_HPP
 #define NEOSWERVEMODULE_HPP
 
@@ -126,3 +126,4 @@ private:
 };
 
 #endif // NEOSWERVEMODULE_HPP
+#endif

@@ -7,7 +7,7 @@
 ///
 /// Copyright (c) 2024 CMSD
 ////////////////////////////////////////////////////////////////////////////////
-
+#if 0
 // SYSTEM INCLUDES
 // <none>
 
@@ -293,3 +293,4 @@ void NeoSwerveModule::UpdateSmartDashboard()
         lastUpdateTime = currentTime;
     }
 }
+#endif
