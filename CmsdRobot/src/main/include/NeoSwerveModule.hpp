@@ -7,7 +7,7 @@
 ///
 /// Copyright (c) 2024 CMSD
 ////////////////////////////////////////////////////////////////////////////////
-#if 0
+
 #ifndef NEOSWERVEMODULE_HPP
 #define NEOSWERVEMODULE_HPP
 
@@ -20,7 +20,7 @@
 #include "frc/kinematics/SwerveModulePosition.h"        // for struct declaration
 #include "frc/kinematics/SwerveModuleState.h"           // for struct declaration
 #include "frc/geometry/Rotation2d.h"                    // for class declaration
-#include "rev/CANSparkMax.h"                            // for interacting with spark max motor controllers
+#include "rev/SparkMax.h"                               // for interacting with spark max motor controllers
 #include "units/angle.h"                                // for degree user defined literal
 #include "units/voltage.h"                              // for voltage unit user defined literals
 
@@ -33,6 +33,7 @@ using namespace ctre::phoenix6::hardware;
 using namespace ctre::phoenix6::signals;
 using namespace frc;
 using namespace rev;
+using namespace rev::spark;
 
 
 ////////////////////////////////////////////////////////////////
@@ -96,12 +97,12 @@ private:
     static uint32_t m_DetailedModuleDisplayIndex;
 
     ModulePosition m_MotorGroupPosition;
-    CANSparkMax * m_pDriveSpark;
-    CANSparkMax * m_pAngleSpark;
+    SparkMax * m_pDriveSpark;
+    SparkMax * m_pAngleSpark;
     SparkRelativeEncoder m_DriveSparkEncoder;
     SparkRelativeEncoder m_AngleSparkEncoder;
-    SparkPIDController m_DrivePidController;
-    SparkPIDController m_AnglePidController;
+    SparkClosedLoopController m_DrivePidController;
+    SparkClosedLoopController m_AnglePidController;
     CANcoder * m_pAngleCanCoder;
     Rotation2d m_AngleOffset;
     Rotation2d m_LastAngle;
@@ -126,4 +127,3 @@ private:
 };
 
 #endif // NEOSWERVEMODULE_HPP
-#endif
