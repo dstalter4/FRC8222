@@ -256,10 +256,6 @@ void CmsdRobot::TeleopPeriodic()
         SwerveDriveSequence();
     }
 
-    IntakeSequence();
-    ArmSequence();
-    LaunchSequence();
-
     //PneumaticSequence();
     
     //CameraSequence();
@@ -280,31 +276,6 @@ void CmsdRobot::UpdateSmartDashboard()
     // @todo: Check if RobotPeriodic() is called every 20ms and use static counter.
     // Give the drive team some state information
     // Nothing to send yet
-}
-
-
-
-void CmsdRobot::IntakeSequence()
-{
-    // Controls from Java program:
-    //  right trigger - intake
-    //  right trigger release - retract
-    //  Y - apply -1.0
-}
-
-void CmsdRobot::ArmSequence()
-{
-    // Controls from Java program:
-    //  left bumper - arm scoring position
-    //  left trigger - intake position
-    //  start button - home position
-}
-
-void CmsdRobot::LaunchSequence()
-{
-    // Controls from Java program:
-    //  right bumper - launch
-    //  A - run intake
 }
 
 
