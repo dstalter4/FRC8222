@@ -183,9 +183,7 @@ private:
     void CameraSequence();
 
     // Superstructure control routines
-    void IntakeSequence();
-    void ArmSequence();
-    void LaunchSequence();
+    // (none yet)
     
     // MEMBER VARIABLES
     
