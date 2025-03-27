@@ -33,6 +33,8 @@
 #include "frc/motorcontrol/Spark.h"             // for creating an object to interact with the rev blinkin
 #include "frc/smartdashboard/SendableChooser.h" // for using the smart dashboard sendable chooser functionality
 #include "frc/smartdashboard/SmartDashboard.h"  // for interacting with the smart dashboard
+#include "ctre/phoenix/led/CANdle.h"
+#include "ctre/phoenix/led/RainbowAnimation.h"
 
 // C++ INCLUDES
 #include "DriveConfiguration.hpp"               // for information on the drive config
@@ -43,6 +45,7 @@
 #include "ctre/phoenix6/Pigeon2.hpp"            // for PigeonIMU
 
 using namespace frc;
+using namespace ctre::phoenix::led;
 
 
 ////////////////////////////////////////////////////////////////
@@ -241,6 +244,9 @@ private:
     // Main sequence for vision processing
     void CameraSequence();
 
+    // LED sequence and support
+    inline void SetLedsToAllianceColor();
+
     // Superstructure sequences
     void LiftSequence();
     void ArmSequence();
@@ -269,7 +275,8 @@ private:
     TalonFxMotorController *        m_pHangMotor;                           // Hang motor control
 
     // LEDs
-    // (none)
+    CANdle *                        m_pCandle;
+    RainbowAnimation                m_RainbowAnimation;
 
     // Digital I/O
     DigitalOutput *                 m_pDebugOutput;                         // Debug assist output
@@ -361,6 +368,7 @@ private:
     // Note: IDs 1-4 are used by the CANcoders (see the
     //       SwerveModuleConfigs in SwerveDrive.hpp).
     static const int                PIGEON_CAN_ID                           = 5;
+    static const int                CANDLE_CAN_ID                           = 6;
 
     // PWM Signals
     // (none)
@@ -431,7 +439,7 @@ private:
     static const int                SCALE_TO_PERCENT                        = 100;
     static const unsigned           SINGLE_MOTOR                            = 1;
     static const unsigned           TWO_MOTORS                              = 2;
-    static const unsigned           NUMBER_OF_LEDS                          = 8;
+    static const unsigned           NUMBER_OF_LEDS                          = 308;
     static const char               NULL_CHARACTER                          = '\0';
 
     static const unsigned           CAMERA_RUN_INTERVAL_MS                  = 1000U;
@@ -525,6 +533,35 @@ private:
     }
 
 };  // End class
+
+
+
+////////////////////////////////////////////////////////////////
+/// @method CmsdRobot::SetLedsToAllianceColor
+///
+/// Sets the LEDs to the alliance color.
+///
+////////////////////////////////////////////////////////////////
+inline void CmsdRobot::SetLedsToAllianceColor()
+{
+    switch (m_AllianceColor.value())
+    {
+        case DriverStation::Alliance::kRed:
+        {
+            m_pCandle->SetLEDs(255, 0, 0, 0, 0, NUMBER_OF_LEDS);
+            break;
+        }
+        case DriverStation::Alliance::kBlue:
+        {
+            m_pCandle->SetLEDs(0, 0, 255, 0, 0, NUMBER_OF_LEDS);
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+}
 
 
 
