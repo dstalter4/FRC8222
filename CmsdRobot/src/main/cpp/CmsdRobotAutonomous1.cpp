@@ -28,6 +28,14 @@
 ////////////////////////////////////////////////////////////////
 void CmsdRobot::AutonomousRoutine1()
 {
+    // We have to wait for the absolute encoders to stabilize
+    while (!m_AbsoluteEncodersInitialized)
+    {
+        WaitForSensorConfig();
+    }
+
+    AutonomousSwerveDriveSequence(ROBOT_FORWARD, ROBOT_NO_ROTATE, 0.15, 0.0, 0.0, 3.0_s, true);
+
     // Returning from here will enter the idle state until autonomous is over
     RobotUtils::DisplayMessage("Auto routine 1 done.");
 }
