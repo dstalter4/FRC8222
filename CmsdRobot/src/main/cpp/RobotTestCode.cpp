@@ -162,6 +162,40 @@ void CmsdRobotTest::InitializeCommonPointers()
 ////////////////////////////////////////////////////////////////
 void CmsdRobotTest::QuickTestCode()
 {
+    static TalonFX * pTalon = new TalonFX(21);
+    static TalonFX * pTalon2 = new TalonFX(22);
+    static PositionVoltage positionVoltage(0.0_tr);
+    static units::angle::degree_t targetPosition = 45.0_deg;
+
+    static bool bConfigured = false;
+    if (!bConfigured)
+    {
+        TalonFXConfiguration config;
+        config.MotorOutput.NeutralMode = NeutralModeValue::Brake;
+        config.Feedback.WithSensorToMechanismRatio(12.0 / 1.0);
+        config.Slot0.WithKP(18.0).WithKI(0.0).WithKD(0.1);
+        (void)pTalon->GetConfigurator().Apply(config);
+        (void)pTalon->GetConfigurator().SetPosition(0.0_tr);
+
+        config.MotorOutput.Inverted = true;
+        Follower follower(21, false);
+        (void)pTalon2->SetControl(follower);
+        bConfigured = true;
+    }
+
+    if (m_pJoystick->GetRawButtonPressed(6))
+    {
+        targetPosition += 100.0_deg;
+    }
+    if (m_pJoystick->GetRawButtonPressed(5))
+    {
+        targetPosition -= 100.0_deg;
+    }
+    units::angle::turn_t turns = targetPosition;
+    pTalon->SetControl(positionVoltage.WithPosition(turns));
+    SmartDashboard::PutNumber("Debug A", targetPosition.value());
+    SmartDashboard::PutNumber("Debug B", pTalon->GetPosition().GetValue().value());
+    SmartDashboard::PutNumber("Debug C", pTalon2->GetPosition().GetValue().value());
 }
 
 

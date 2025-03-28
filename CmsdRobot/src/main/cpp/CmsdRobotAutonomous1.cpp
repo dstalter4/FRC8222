@@ -34,7 +34,10 @@ void CmsdRobot::AutonomousRoutine1()
         WaitForSensorConfig();
     }
 
-    AutonomousSwerveDriveSequence(ROBOT_FORWARD, ROBOT_NO_ROTATE, 0.15, 0.0, 0.0, 3.0_s, true);
+    m_pSwerveDrive->ZeroGyroYaw();
+    m_pPigeon->SetYaw(units::angle::degree_t(180.0));
+
+    AutonomousSwerveDriveSequence(ROBOT_REVERSE, ROBOT_NO_ROTATE, 0.15, 0.0, 0.0, 3.0_s, true);
 
     // Returning from here will enter the idle state until autonomous is over
     RobotUtils::DisplayMessage("Auto routine 1 done.");
