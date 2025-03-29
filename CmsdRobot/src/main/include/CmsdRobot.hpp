@@ -108,21 +108,33 @@ private:
         ROBOT_MODE_DISABLED,
         ROBOT_MODE_NOT_SET
     };
-    
-    enum RobotDirection : uint32_t
+
+    enum class RobotDirection
     {
-        ROBOT_NO_DIRECTION = 0x0,
-        ROBOT_FORWARD = 0x1,
-        ROBOT_REVERSE = 0x2,
-        ROBOT_LEFT = 0x10,
-        ROBOT_RIGHT = 0x20,
-        ROBOT_TRANSLATION_MASK = 0xF,
-        ROBOT_STRAFE_MASK = 0xF0
+        ROBOT_NO_DIRECTION,
+        ROBOT_FORWARD,
+        ROBOT_REVERSE,
+        ROBOT_LEFT,
+        ROBOT_RIGHT
     };
-    
-    enum RobotRotate
+
+    enum class RobotTranslation
     {
-        ROBOT_NO_ROTATE,
+        ROBOT_NO_TRANSLATION,
+        ROBOT_TRANSLATION_FORWARD,
+        ROBOT_TRANSLATION_REVERSE
+    };
+
+    enum class RobotStrafe
+    {
+        ROBOT_NO_STRAFE,
+        ROBOT_STRAFE_LEFT,
+        ROBOT_STRAFE_RIGHT
+    };
+
+    enum class RobotRotation
+    {
+        ROBOT_NO_ROTATION,
         ROBOT_CLOCKWISE,
         ROBOT_COUNTER_CLOCKWISE
     };
@@ -186,7 +198,24 @@ private:
     }
     
     // STRUCTS
-    // (none)
+    struct RobotSwerveDirections
+    {
+      public:
+        RobotSwerveDirections() : m_Translation(RobotTranslation::ROBOT_NO_TRANSLATION), m_Strafe(RobotStrafe::ROBOT_NO_STRAFE), m_Rotation(RobotRotation::ROBOT_NO_ROTATION) {}
+        inline void SetSwerveDirections(RobotTranslation translationDirection, RobotStrafe strafeDirection, RobotRotation rotationDirection)
+        {
+            m_Translation = translationDirection;
+            m_Strafe = strafeDirection;
+            m_Rotation = rotationDirection;
+        }
+        inline RobotTranslation GetTranslation() { return m_Translation; }
+        inline RobotStrafe GetStrafe() { return m_Strafe; }
+        inline RobotRotation GetRotation() { return m_Rotation; }
+      private:
+        RobotTranslation m_Translation;
+        RobotStrafe m_Strafe;
+        RobotRotation m_Rotation;
+    };
     
     // This is a hacky way of retrieving a pointer to the robot object
     // outside of the robot class.  The robot object itself is a static
@@ -212,10 +241,13 @@ private:
     inline void AutonomousDelay(units::second_t time);
 
     // Autonomous drive for a specified time
-    inline void AutonomousSwerveDriveSequence(RobotDirection direction, RobotRotate rotate, double translationSpeed, double strafeSpeed, double rotateSpeed, units::second_t time, bool bFieldRelative);
-    
+    inline void AutonomousSwerveDriveSequence(RobotSwerveDirections & rSwerveDirections, double translationSpeed, double strafeSpeed, double rotateSpeed, units::second_t time, bool bFieldRelative);
+
+    // Autonomous drive for a specified angle
+    inline void AutonomousRotateByGyroSequence(RobotRotation robotRotation, double rotateDegrees, double rotateSpeed, bool bFieldRelative);
+
     // Autonomous routines
-    // @todo: Make CmsdRobotAutonomous a friend and move these out (requires accessor to *this)!
+    // @todo: Make EastTechRobotAutonomous a friend and move these out (requires accessor to *this)!
     void AutonomousRoutine1();
     void AutonomousRoutine2();
     void AutonomousRoutine3();
@@ -259,6 +291,7 @@ private:
     
     // Autonomous
     SendableChooser<std::string>    m_AutonomousChooser;                    // Selects from the dashboard which auto routine to run
+    RobotSwerveDirections           m_AutoSwerveDirections;                 // Used by autonomous routines to control swerve drive movements
     
     // User Controls
     DriveControllerType *           m_pDriveController;                     // Drive controller
@@ -308,9 +341,19 @@ private:
     // Misc
     units::angle::degree_t          m_LiftTargetDegrees;                    // Tracks the desired angle position of the lift
     units::angle::degree_t          m_ArmTargetDegrees;                     // Tracks the desired angle position of the arm
-    units::angle::degree_t          m_ArmManualOffsetDegrees;               // Tracks the desired manual offset of the arm angle
+    units::angle::degree_t          m_ArmLoadingOffsetDegrees;              // Tracks the desired manual offset of the arm angle when loading
+    units::angle::degree_t          m_ArmNeutralOffsetDegrees;              // Tracks the desired manual offset of the arm angle when neutral
+    units::angle::degree_t          m_ArmL1OffsetDegrees;                   // Tracks the desired manual offset of the arm angle when at L1
+    units::angle::degree_t          m_ArmL2L3OffsetDegrees;                 // Tracks the desired manual offset of the arm angle when at L2/L3
+    units::angle::degree_t          m_ArmL4OffsetDegrees;                   // Tracks the desired manual offset of the arm angle when at L4
+    units::angle::degree_t *        m_pArmManualOffsetDegrees;              // Pointer to the current variable for manual offset of the arm angle
     units::angle::degree_t          m_WristTargetDegrees;                   // Tracks the desired angle position of the wrist
-    units::angle::degree_t          m_WristManualOffsetDegrees;             // Tracks the desired manual offset of the wrist angle
+    units::angle::degree_t          m_WristLoadingOffsetDegrees;            // Tracks the desired manual offset of the wrist angle when loading
+    units::angle::degree_t          m_WristNeutralOffsetDegrees;            // Tracks the desired manual offset of the wrist angle when neutral
+    units::angle::degree_t          m_WristL1OffsetDegrees;                 // Tracks the desired manual offset of the wrist angle when at L1
+    units::angle::degree_t          m_WristL2L3OffsetDegrees;               // Tracks the desired manual offset of the wrist angle when at L2/L3
+    units::angle::degree_t          m_WristL4OffsetDegrees;                 // Tracks the desired manual offset of the wrist angle when at L4
+    units::angle::degree_t *        m_pWristManualOffsetDegrees;            // Pointer to the current variable for manual offset of the wrist angle
     LiftPosition                    m_LiftPosition;                         // Keep track of where the lift is currently positioned
     ArmPosition                     m_ArmPosition;                          // Keep track of where the arm is currently positioned
     RobotMode                       m_RobotMode;                            // Keep track of the current robot state
