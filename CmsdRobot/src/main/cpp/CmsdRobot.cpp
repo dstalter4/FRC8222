@@ -62,6 +62,7 @@ CmsdRobot::CmsdRobot() :
     m_ArmL1OffsetDegrees                (0.0_deg),
     m_ArmL2L3OffsetDegrees              (0.0_deg),
     m_ArmL4OffsetDegrees                (0.0_deg),
+    m_ArmRemoveAlgaeOffsetDegrees       (0.0_deg),
     m_pArmManualOffsetDegrees           (&m_ArmNeutralOffsetDegrees),
     m_WristTargetDegrees                (WRIST_STARTING_POSITION_DEGREES),
     m_WristLoadingOffsetDegrees         (0.0_deg),
@@ -69,6 +70,7 @@ CmsdRobot::CmsdRobot() :
     m_WristL1OffsetDegrees              (0.0_deg),
     m_WristL2L3OffsetDegrees            (0.0_deg),
     m_WristL4OffsetDegrees              (0.0_deg),
+    m_WristRemoveAlgaeOffsetDegrees     (0.0_deg),
     m_pWristManualOffsetDegrees         (&m_WristNeutralOffsetDegrees),
     m_LiftPosition                      (LiftPosition::LIFT_DOWN),
     m_ArmPosition                       (ArmPosition::NEUTRAL),
@@ -495,6 +497,7 @@ void CmsdRobot::UpdateSmartDashboard()
     bool bL2 = false;
     bool bL3 = false;
     bool bL4 = false;
+    bool bRemoveAlgae = false;
     switch (m_LiftPosition)
     {
         case LiftPosition::LIFT_DOWN:
@@ -521,6 +524,11 @@ void CmsdRobot::UpdateSmartDashboard()
                     bL2 = true;
                     break;
                 }
+                case ArmPosition::REMOVE_ALGAE:
+                {
+                    bRemoveAlgae = true;
+                    break;
+                }
                 default:
                 {
                     break;
@@ -530,9 +538,22 @@ void CmsdRobot::UpdateSmartDashboard()
         }
         case LiftPosition::LIFT_MIDDLE:
         {
-            if (m_ArmPosition == ArmPosition::REEF_L2_L3)
+            switch (m_ArmPosition)
             {
-                bL3 = true;
+                case ArmPosition::REEF_L2_L3:
+                {
+                    bL3 = true;
+                    break;
+                }
+                case ArmPosition::REMOVE_ALGAE:
+                {
+                    bRemoveAlgae = true;
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
             }
             break;
         }
@@ -555,6 +576,7 @@ void CmsdRobot::UpdateSmartDashboard()
     SmartDashboard::PutBoolean("L2", bL2);
     SmartDashboard::PutBoolean("L3", bL3);
     SmartDashboard::PutBoolean("L4", bL4);
+    SmartDashboard::PutBoolean("Algae", bRemoveAlgae);
 }
 
 
@@ -625,6 +647,7 @@ void CmsdRobot::LiftSequence()
         case ArmPosition::REEF_L1:
         case ArmPosition::REEF_L2_L3:
         case ArmPosition::REEF_L4:
+        case ArmPosition::REMOVE_ALGAE:
         {
             // Allowing motion here regardless of where the lift
             // currently is doesn't matter because the increment
@@ -799,6 +822,15 @@ void CmsdRobot::ArmSequence()
             m_WristTargetDegrees = (*m_pWristManualOffsetDegrees) + WRIST_REEF_L4_TARGET_DEGREES;
             break;
         }
+        case ArmPosition::REMOVE_ALGAE:
+        {
+            // Lift is up for this reef level
+            m_pArmManualOffsetDegrees = &m_ArmRemoveAlgaeOffsetDegrees;
+            m_ArmTargetDegrees = (*m_pArmManualOffsetDegrees) + ARM_REEF_ALGAE_TARGET_DEGREES;
+            m_pWristManualOffsetDegrees = &m_WristRemoveAlgaeOffsetDegrees;
+            m_WristTargetDegrees = (*m_pWristManualOffsetDegrees) + WRIST_REEF_ALGAE_TARGET_DEGREES;
+            break;
+        }
         default:
         {
             break;
@@ -931,6 +963,7 @@ void CmsdRobot::GamePieceControlSequence()
             break;
         }
         case ArmPosition::REEF_L4:
+        case ArmPosition::REMOVE_ALGAE:
         {
             outputMultiplier = -1.0;
             break;
