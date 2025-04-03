@@ -405,9 +405,8 @@ void CmsdRobot::InitialStateSetup()
     // With CTRE swerve electronics, sometimes the CANcoder appears to not be
     // ready when constructors measure the absolute position.  The issue isn't
     // entirely understood, but recalibrating here seems to provide stability.
-    #ifdef USE_TALONFX_SWERVE
+    // Note: This won't work if Neo swerve is used.
     m_pSwerveDrive->RecalibrateModules();
-    #endif
 }
 
 
