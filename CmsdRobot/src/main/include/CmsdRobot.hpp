@@ -248,7 +248,7 @@ private:
     inline void AutonomousRotateByGyroSequence(RobotRotation robotRotation, double rotateDegrees, double rotateSpeed, bool bFieldRelative);
 
     // Autonomous routines
-    // @todo: Make EastTechRobotAutonomous a friend and move these out (requires accessor to *this)!
+    // @todo: Make CmsdRobotAutonomous a friend and move these out (requires accessor to *this)!
     void AutonomousRoutine1();
     void AutonomousRoutine2();
     void AutonomousRoutine3();
@@ -450,22 +450,22 @@ private:
     static constexpr const units::angle::degree_t ARM_STARTING_POSITION_DEGREES         = 190.0_deg;
     static constexpr const units::angle::degree_t ARM_STARTING_POSITION_ENCODER_VALUE   = units::angle::degree_t(0.0341 * 360.0); //.0341
     static constexpr const units::angle::degree_t ARM_ENDING_POSITION_ENCODER_VALUE     = units::angle::degree_t(0.0000 * 360.0);
-    static constexpr const units::angle::degree_t ARM_LOADING_TARGET_DEGREES            = 205.0_deg;
-    static constexpr const units::angle::degree_t ARM_NEUTRAL_TARGET_DEGREES            = 190.0_deg;
+    static constexpr const units::angle::degree_t ARM_LOADING_TARGET_DEGREES            = 195.0_deg;
+    static constexpr const units::angle::degree_t ARM_NEUTRAL_TARGET_DEGREES            = 180.0_deg;
     static constexpr const units::angle::degree_t ARM_REEF_L1_TARGET_DEGREES            = 70.0_deg;
     static constexpr const units::angle::degree_t ARM_REEF_L2_L3_TARGET_DEGREES         = 30.0_deg;
-    static constexpr const units::angle::degree_t ARM_REEF_L4_TARGET_DEGREES            = -15.0_deg;
-    static constexpr const units::angle::degree_t ARM_REEF_ALGAE_TARGET_DEGREES         = 5.0_deg;
+    static constexpr const units::angle::degree_t ARM_REEF_L4_TARGET_DEGREES            = -25.0_deg;
+    static constexpr const units::angle::degree_t ARM_REEF_ALGAE_TARGET_DEGREES         = 0.0_deg;
 
     static constexpr const units::angle::degree_t ARM_WRIST_MANUAL_ADJUST_STEP_DEGREES  = 10.0_deg;
 
     static constexpr const units::angle::degree_t WRIST_STARTING_POSITION_DEGREES       = 135.0_deg;
-    static constexpr const units::angle::degree_t WRIST_STARTING_POSITION_ENCODER_VALUE = units::angle::degree_t(0.6733 * 360.0); //.6733
+    static constexpr const units::angle::degree_t WRIST_STARTING_POSITION_ENCODER_VALUE = units::angle::degree_t(0.9610 * 360.0); //.9610
     static constexpr const units::angle::degree_t WRIST_ENDING_POSITION_ENCODER_VALUE   = units::angle::degree_t(0.0000 * 360.0);
     static constexpr const units::angle::degree_t WRIST_LOADING_TARGET_DEGREES          = 50.0_deg;
     static constexpr const units::angle::degree_t WRIST_NEUTRAL_TARGET_DEGREES          = 165.0_deg;
     static constexpr const units::angle::degree_t WRIST_REEF_L1_TARGET_DEGREES          = 125.0_deg;
-    static constexpr const units::angle::degree_t WRIST_REEF_L2_L3_TARGET_DEGREES       = 155.0_deg;
+    static constexpr const units::angle::degree_t WRIST_REEF_L2_L3_TARGET_DEGREES       = 145.0_deg;
     static constexpr const units::angle::degree_t WRIST_REEF_L4_TARGET_DEGREES          = 70.0_deg;
     static constexpr const units::angle::degree_t WRIST_REEF_ALGAE_TARGET_DEGREES       = 255.0_deg;
 
