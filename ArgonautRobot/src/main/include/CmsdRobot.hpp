@@ -9,43 +9,48 @@
 /// right time as controlled by the switches on the driver station or the field
 /// controls.
 ///
-/// Copyright (c) 2025 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef CMSDROBOT_HPP
 #define CMSDROBOT_HPP
 
 // SYSTEM INCLUDES
-#include <cmath>                                // for M_PI
-#include <thread>                               // for std::thread
+#include <cmath>                                            // for M_PI
+#include <thread>                                           // for std::thread
 
 // C INCLUDES
-#include "frc/Compressor.h"                     // for retrieving info on the compressor
-#include "frc/DigitalInput.h"                   // for DigitalInput type
-#include "frc/DigitalOutput.h"                  // for DigitalOutput type
-#include "frc/DoubleSolenoid.h"                 // for DoubleSolenoid type
-#include "frc/DriverStation.h"                  // for interacting with the driver station
-#include "frc/DutyCycleEncoder.h"               // for interacting with PWM based encoders
-#include "frc/Relay.h"                          // for Relay type
-#include "frc/Solenoid.h"                       // for Solenoid type
-#include "frc/TimedRobot.h"                     // for base class decalartion
-#include "frc/livewindow/LiveWindow.h"          // for controlling the LiveWindow
-#include "frc/motorcontrol/Spark.h"             // for creating an object to interact with the rev blinkin
-#include "frc/smartdashboard/SendableChooser.h" // for using the smart dashboard sendable chooser functionality
-#include "frc/smartdashboard/SmartDashboard.h"  // for interacting with the smart dashboard
+#include "frc/Compressor.h"                                 // for retrieving info on the compressor
+#include "frc/DigitalInput.h"                               // for DigitalInput type
+#include "frc/DigitalOutput.h"                              // for DigitalOutput type
+#include "frc/DoubleSolenoid.h"                             // for DoubleSolenoid type
+#include "frc/DriverStation.h"                              // for interacting with the driver station
+#include "frc/DutyCycleEncoder.h"                           // for interacting with PWM based encoders
+#include "frc/Relay.h"                                      // for Relay type
+#include "frc/Solenoid.h"                                   // for Solenoid type
+#include "frc/TimedRobot.h"                                 // for base class decalartion
+#include "frc/livewindow/LiveWindow.h"                      // for controlling the LiveWindow
+#include "frc/motorcontrol/Spark.h"                         // for creating an object to interact with the rev blinkin
+#include "frc/smartdashboard/SendableChooser.h"             // for using the smart dashboard sendable chooser functionality
+#include "frc/smartdashboard/SmartDashboard.h"              // for interacting with the smart dashboard
 
 // C++ INCLUDES
-#include "DriveConfiguration.hpp"               // for information on the drive config
-#include "CmsdController.hpp"                   // for controller interaction
-#include "CmsdTalon.hpp"                        // for custom Talon control
-#include "RobotUtils.hpp"                       // for ASSERT, DEBUG_PRINTS
-#include "SwerveDrive.hpp"                      // for using swerve drive
-#include "ctre/phoenix/led/CANdle.h"            // for interacting with the CANdle
-#include "ctre/phoenix/led/RainbowAnimation.h"  // for interacting with the CANdle
-#include "ctre/phoenix6/Pigeon2.hpp"            // for PigeonIMU
+#include "DriveConfiguration.hpp"                           // for information on the drive config
+#include "CmsdController.hpp"                               // for controller interaction
+#include "CmsdTalon.hpp"                                    // for custom Talon control
+#include "RobotUtils.hpp"                                   // for ASSERT, DEBUG_PRINTS
+#include "SwerveDrive.hpp"                                  // for using swerve drive
+#include "ctre/phoenix6/CANBus.hpp"                         // for creating CANBus bojects
+#include "ctre/phoenix6/CANdle.hpp"                         // for interacting with the CANdle
+#include "ctre/phoenix6/Pigeon2.hpp"                        // for PigeonIMU
+#include "ctre/phoenix6/controls/RainbowAnimation.hpp"      // for creating animations on the CANdle
+
 
 using namespace frc;
-using namespace ctre::phoenix::led;
+using namespace ctre::phoenix6;
+using namespace ctre::phoenix6::controls;
+using namespace ctre::phoenix6::hardware;
+using namespace ctre::phoenix6::signals;
 
 
 ////////////////////////////////////////////////////////////////
@@ -236,6 +241,10 @@ private:
     // User Controls
     DriveControllerType *           m_pDriveController;                     // Drive controller
     AuxControllerType *             m_pAuxController;                       // Auxillary input controller
+
+    // CAN Bus
+    CANBus                          m_RioCanBus;                            // CAN bus object for the RIO
+    CANBus                          m_CanivoreBus;                          // CAN bus object for the canivore
     
     // Swerve Drive
     Pigeon2 *                       m_pPigeon;                              // CTRE Pigeon2 IMU
@@ -245,8 +254,10 @@ private:
     // (none)
 
     // LEDs
-    CANdle *                        m_pCandle;
-    RainbowAnimation                m_RainbowAnimation;
+    CANdle *                        m_pCandle;                              // Controls an RGB LED strip
+    SolidColor                      m_LedStripSolidColor;                   // Used when setting the LEDs to RGB values
+    RainbowAnimation                m_RainbowAnimation;                     // Rainbow animation configuration (brightness, speed, # LEDs)
+    static constexpr const RGBWColor RGBW_OFF{0, 0, 0, 0};                  // Common RGBWColor expression representing LEDs off
 
     // Digital I/O
     DigitalOutput *                 m_pDebugOutput;                         // Debug assist output
@@ -454,12 +465,14 @@ inline void CmsdRobot::SetLedsToAllianceColor()
     {
         case DriverStation::Alliance::kRed:
         {
-            m_pCandle->SetLEDs(255, 0, 0, 0, 0, NUMBER_OF_LEDS);
+            constexpr const RGBWColor RGBW_RED{255, 0, 0, 0};
+            m_pCandle->SetControl(m_LedStripSolidColor.WithColor(RGBW_RED));
             break;
         }
         case DriverStation::Alliance::kBlue:
         {
-            m_pCandle->SetLEDs(0, 0, 255, 0, 0, NUMBER_OF_LEDS);
+            constexpr const RGBWColor RGBW_BLUE{0, 0, 255, 0};
+            m_pCandle->SetControl(m_LedStripSolidColor.WithColor(RGBW_BLUE));
             break;
         }
         default:
