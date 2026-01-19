@@ -7,7 +7,7 @@
 /// mappings.
 ///
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef CONTROLLERCONFIGURATION_HPP
@@ -24,13 +24,13 @@
 
 
 ////////////////////////////////////////////////////////////////
-/// @namespace Cmsd::Controller::Config
+/// @namespace Argonaut::Controller::Config
 ///
-/// Provides generic declarations for information on CMSD
+/// Provides generic declarations for information on Argonaut
 /// controller configuration.
 ///
 ////////////////////////////////////////////////////////////////
-namespace Cmsd
+namespace Argonaut
 {
 namespace Controller
 {

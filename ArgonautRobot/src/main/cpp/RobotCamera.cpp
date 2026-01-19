@@ -5,7 +5,7 @@
 /// @details
 /// A class designed to support camera functionality on the robot.
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 // SYSTEM INCLUDES
@@ -19,7 +19,7 @@
 // C++ INCLUDES
 #include "RobotCamera.hpp"                      // for class declaration
 #include "RobotUtils.hpp"                       // for DisplayMessage(), DisplayFormattedMessage()
-#include "CmsdRobot.hpp"                        // for GetRobotInstance()
+#include "ArgonautRobot.hpp"                    // for GetRobotInstance()
 
 // STATIC MEMBER DATA
 std::shared_ptr<nt::NetworkTable>               RobotCamera::m_pLimelightNetworkTable;
@@ -61,7 +61,7 @@ double                                          RobotCamera::AutonomousCamera::m
 ////////////////////////////////////////////////////////////////
 bool RobotCamera::AutonomousCamera::AlignToTarget(SeekDirection seekDirection, const bool bEnableMotors)
 {
-    CmsdRobot * pRobotObj = CmsdRobot::GetRobotInstance();
+    ArgonautRobot * pRobotObj = ArgonautRobot::GetRobotInstance();
     bool bTargetFound = false;
     m_AutoCameraTimer.Start();
 
@@ -177,7 +177,7 @@ bool RobotCamera::AutonomousCamera::AlignToTarget(SeekDirection seekDirection, c
 void RobotCamera::AutonomousCamera::AlignToTargetSwerve()
 {
     // Make sure the robot object has been created (the thread will start running very early)
-    CmsdRobot * pRobotObj = CmsdRobot::GetRobotInstance();
+    ArgonautRobot * pRobotObj = ArgonautRobot::GetRobotInstance();
     if (pRobotObj == nullptr)
     {
         return;
@@ -301,7 +301,7 @@ void RobotCamera::LimelightThread()
 
     // The limelight camera mode will be set by autonomous or teleop
     // 2024: Set april tag priority (red speaker center is 3, blue speaker center is 7)
-    const uint32_t APRIL_TAG_PRIORITY = (CmsdRobot::GetRobotInstance()->m_AllianceColor.value() == DriverStation::Alliance::kRed) ? 4U : 7U;
+    const uint32_t APRIL_TAG_PRIORITY = (ArgonautRobot::GetRobotInstance()->m_AllianceColor.value() == DriverStation::Alliance::kRed) ? 4U : 7U;
     m_pLimelightNetworkTable->PutNumber("priorityid", APRIL_TAG_PRIORITY);
     
     while (true)

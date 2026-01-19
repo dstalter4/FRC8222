@@ -1,16 +1,16 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @file   CmsdTalon.hpp
+/// @file   ArgonautTalon.hpp
 /// @author David Stalter
 ///
 /// @details
 /// A class designed to work with a group of CAN Talon speed controllers working
 /// in tandem.
 ///
-/// Copyright (c) 2025 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CMSDTALON_HPP
-#define CMSDTALON_HPP
+#ifndef ARGONAUTTALON_HPP
+#define ARGONAUTTALON_HPP
 
 // SYSTEM INCLUDES
 #include <cstdio>                               // for std::snprintf
@@ -30,13 +30,13 @@ using namespace ctre::phoenix6::signals;
 
 
 ////////////////////////////////////////////////////////////////
-/// @namespace CmsdTalon
+/// @namespace ArgonautTalon
 ///
 /// Namespace that contains declarations for interacting with
-/// Talon speed controllers specific to CMSD.
+/// Talon speed controllers specific to Argonaut.
 ///
 ////////////////////////////////////////////////////////////////
-namespace Cmsd
+namespace Argonaut
 {
 namespace Talon
 {
@@ -153,7 +153,7 @@ class TalonMotorGroup
 {
 public:
 
-    typedef Cmsd::Talon::MotorGroupControlMode MotorGroupControlMode;
+    typedef Argonaut::Talon::MotorGroupControlMode MotorGroupControlMode;
     
     // Constructor
     TalonMotorGroup(
@@ -247,13 +247,13 @@ private:
         {
             m_MotorConfiguration.MotorOutput.NeutralMode = neutralMode;
 
-            if (controlMode == Cmsd::Talon::FOLLOW_INVERSE)
+            if (controlMode == Argonaut::Talon::FOLLOW_INVERSE)
             {
                 m_MotorConfiguration.MotorOutput.Inverted = true;
             }
 
             // @todo: Move in sensor too?
-            if (Cmsd::Talon::CURRENT_LIMITING_ENABLED && bIsDriveMotor)
+            if (Argonaut::Talon::CURRENT_LIMITING_ENABLED && bIsDriveMotor)
             {
                 // Limits were 40.0, 55.0, 0.1
                 m_MotorConfiguration.CurrentLimits.SupplyCurrentLowerLimit = 55.0_A;
@@ -469,7 +469,7 @@ TalonMotorGroup<TalonType>::TalonMotorGroup(const char * pName, unsigned numMoto
         if (i == 0U)
         {
             // Create it
-            m_pMotorsInfo[i] = new MotorInfo(pName, Cmsd::Talon::LEADER, neutralMode, leaderCanId, groupId, bIsDriveMotor);
+            m_pMotorsInfo[i] = new MotorInfo(pName, Argonaut::Talon::LEADER, neutralMode, leaderCanId, groupId, bIsDriveMotor);
         }
         // Non-leader Talons
         else
@@ -480,9 +480,9 @@ TalonMotorGroup<TalonType>::TalonMotorGroup(const char * pName, unsigned numMoto
             // Only set follow for Talon groups that will be configured as
             // such.  The CTRE Phoenix library now passes the control mode in
             // the Set() method, so we only need to set the followers here.
-            if ((nonLeaderControlMode == Cmsd::Talon::FOLLOW) || (nonLeaderControlMode == Cmsd::Talon::FOLLOW_INVERSE))
+            if ((nonLeaderControlMode == Argonaut::Talon::FOLLOW) || (nonLeaderControlMode == Argonaut::Talon::FOLLOW_INVERSE))
             {
-                bool bInvert = (nonLeaderControlMode == Cmsd::Talon::FOLLOW) ? false : true;
+                bool bInvert = (nonLeaderControlMode == Argonaut::Talon::FOLLOW) ? false : true;
                 m_pMotorsInfo[i]->SetAsFollower(leaderCanId, bInvert);
             }
         }
@@ -513,9 +513,9 @@ bool TalonMotorGroup<TalonType>::AddMotorToGroup(MotorGroupControlMode controlMo
         m_pMotorsInfo[m_NumMotors] = new MotorInfo(m_pMotorsInfo[0]->m_pName, controlMode, newMotorCanId, (m_NumMotors + 1), bIsDriveMotor);
         
         // If this Talon will be a follower, be sure to call Set() to enable it
-        if ((controlMode == Cmsd::Talon::FOLLOW) || (controlMode == Cmsd::Talon::FOLLOW_INVERSE))
+        if ((controlMode == Argonaut::Talon::FOLLOW) || (controlMode == Argonaut::Talon::FOLLOW_INVERSE))
         {
-            bool bInvert = (controlMode == Cmsd::Talon::FOLLOW) ? false : true;
+            bool bInvert = (controlMode == Argonaut::Talon::FOLLOW) ? false : true;
             m_pMotorsInfo[m_NumMotors]->SetAsFollower(m_LeaderCanId, bInvert);
         }
 
@@ -552,9 +552,9 @@ bool TalonMotorGroup<TalonType>::SetMotorInGroupControlMode(unsigned canId, Moto
             m_pMotorsInfo[i]->m_ControlMode = controlMode;
 
             // If this Talon will be a follower, be sure to call Set() to enable it
-            if ((controlMode == Cmsd::Talon::FOLLOW) || (controlMode == Cmsd::Talon::FOLLOW_INVERSE))
+            if ((controlMode == Argonaut::Talon::FOLLOW) || (controlMode == Argonaut::Talon::FOLLOW_INVERSE))
             {
-                bool bInvert = (controlMode == Cmsd::Talon::FOLLOW) ? false : true;
+                bool bInvert = (controlMode == Argonaut::Talon::FOLLOW) ? false : true;
                 m_pMotorsInfo[i]->SetAsFollower(m_LeaderCanId, bInvert);
             }
             else
@@ -565,7 +565,7 @@ bool TalonMotorGroup<TalonType>::SetMotorInGroupControlMode(unsigned canId, Moto
             }
 
             // Update the inverted status.  Only FOLLOW_INVERSE uses the built-in invert.
-            if (controlMode == Cmsd::Talon::FOLLOW_INVERSE)
+            if (controlMode == Argonaut::Talon::FOLLOW_INVERSE)
             {
                 m_pMotorsInfo[i]->m_MotorConfiguration.MotorOutput.WithInverted(true);
                 m_pMotorsInfo[i]->m_pTalon->GetConfigurator().Apply(m_pMotorsInfo[i].m_MotorConfiguration.MotorOutput);
@@ -651,34 +651,34 @@ void TalonMotorGroup<TalonType>::Set(double value, double offset)
         // as if they need to drive in different directions).
         switch (m_pMotorsInfo[i]->m_ControlMode)
         {
-            case Cmsd::Talon::LEADER:
-            case Cmsd::Talon::INDEPENDENT:
+            case Argonaut::Talon::LEADER:
+            case Argonaut::Talon::INDEPENDENT:
             {
                 // The leader always gets set via duty cycle, as do motors
                 // that are independently controlled (not follow or inverse).
                 valueToSet = value;
                 break;
             }
-            case Cmsd::Talon::FOLLOW:
-            case Cmsd::Talon::FOLLOW_INVERSE:
+            case Argonaut::Talon::FOLLOW:
+            case Argonaut::Talon::FOLLOW_INVERSE:
             {
                 // Nothing to do, motor had SetControl() called during object construction
                 bCallSet = false;
                 break;
             }
-            case Cmsd::Talon::INVERSE:
+            case Argonaut::Talon::INVERSE:
             {
                 // Motor is attached to drive in opposite direction of leader
                 valueToSet = -value;
                 break;
             }
-            case Cmsd::Talon::INDEPENDENT_OFFSET:
+            case Argonaut::Talon::INDEPENDENT_OFFSET:
             {
                 // The non-leader motor has a different value in this case
                 valueToSet = value + offset;
                 break;
             }
-            case Cmsd::Talon::INVERSE_OFFSET:
+            case Argonaut::Talon::INVERSE_OFFSET:
             {
                 // The non-leader motor has a different value in this case
                 valueToSet = -(value + offset);
@@ -755,4 +755,4 @@ void TalonMotorGroup<TalonType>::DisplayStatusInformation()
     }
 }
 
-#endif // CMSDTALON_HPP
+#endif // ARGONAUTTALON_HPP

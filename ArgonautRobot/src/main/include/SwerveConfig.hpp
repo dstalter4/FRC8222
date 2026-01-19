@@ -5,7 +5,7 @@
 /// @details
 /// Swerve drive configuration and constants.
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SWERVECONFIG_HPP

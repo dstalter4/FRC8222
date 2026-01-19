@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @file   CmsdCustomController.hpp
+/// @file   ArgonautCustomController.hpp
 /// @author David Stalter
 ///
 /// @details
@@ -7,11 +7,11 @@
 /// Xbox GameSir, PS4, etc.) with custom responses.
 ///
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CMSDCUSTOMCONTROLLER_HPP
-#define CMSDCUSTOMCONTROLLER_HPP
+#ifndef ARGONAUTCUSTOMCONTROLLER_HPP
+#define ARGONAUTCUSTOMCONTROLLER_HPP
 
 // SYSTEM INCLUDES
 // <none>
@@ -20,26 +20,26 @@
 #include "frc/GenericHID.h"             // for base class declaration
 
 // C++ INCLUDES
-#include "ControllerConfiguration.hpp"  // for Cmsd::Controller::Config::Styles
+#include "ControllerConfiguration.hpp"  // for Argonaut::Controller::Config::Styles
 
 using namespace frc;
 
 
 ////////////////////////////////////////////////////////////////
-/// @class CmsdCustomController
+/// @class ArgonautCustomController
 ///
 /// Class that provides methods for interacting with a generic
 /// controller.  It is derived from GenericHID and can support
 /// several different types of controllers.
 ///
 ////////////////////////////////////////////////////////////////
-class CmsdCustomController : public GenericHID
+class ArgonautCustomController : public GenericHID
 {
 public:
     
     // Constructor/destructor
-    explicit CmsdCustomController(Cmsd::Controller::Config::Models controllerModel, int port);
-    virtual ~CmsdCustomController() = default;
+    explicit ArgonautCustomController(Argonaut::Controller::Config::Models controllerModel, int port);
+    virtual ~ArgonautCustomController() = default;
     
     double GetDriveX() const;
     double GetDriveY() const;
@@ -49,7 +49,7 @@ public:
 private:
     
     ////////////////////////////////////////////////////////////////
-    /// @method CmsdController::NormalizeTriggers
+    /// @method ArgonautController::NormalizeTriggers
     ///
     /// Function to normalize the trigger inputs to expected output
     /// ranges.  The controller logic wants the left trigger to be
@@ -63,8 +63,8 @@ private:
     {
         switch (CONTROLLER_MODEL)
         {
-            case Cmsd::Controller::Config::Models::CUSTOM_LOGITECH:
-            case Cmsd::Controller::Config::Models::CUSTOM_XBOX:
+            case Argonaut::Controller::Config::Models::CUSTOM_LOGITECH:
+            case Argonaut::Controller::Config::Models::CUSTOM_XBOX:
             {
                 // Logitech and Xbox joystick axes inputs are:
                 // LT: 0->+1, RT: 0->+1
@@ -75,7 +75,7 @@ private:
                 rRightTrigger *= -1.0;
                 break;
             }
-            case Cmsd::Controller::Config::Models::CUSTOM_PLAY_STATION:
+            case Argonaut::Controller::Config::Models::CUSTOM_PLAY_STATION:
             {
                 // PlayStation joystick axes inputs are:
                 // L2: -1->+1, R2: +1->-1
@@ -94,16 +94,16 @@ private:
         }
     }
     
-    const Cmsd::Controller::Config::Models CONTROLLER_MODEL;
-    const Cmsd::Controller::Config::Mappings * const CONTROLLER_MAPPINGS;
+    const Argonaut::Controller::Config::Models CONTROLLER_MODEL;
+    const Argonaut::Controller::Config::Mappings * const CONTROLLER_MAPPINGS;
     double m_ThrottleValue;
     
     static constexpr double X_AXIS_DRIVE_SENSITIVITY_SCALING = 1.00;
     static constexpr double Y_AXIS_DRIVE_SENSITIVITY_SCALING = 1.00;
     
     // Prevent copying/assignment
-    CmsdCustomController(const CmsdCustomController&) = delete;
-    CmsdCustomController& operator=(const CmsdCustomController&) = delete;
+    ArgonautCustomController(const ArgonautCustomController&) = delete;
+    ArgonautCustomController& operator=(const ArgonautCustomController&) = delete;
 };
 
-#endif // CMSDCUSTOMCONTROLLER_HPP
+#endif // ARGONAUTCUSTOMCONTROLLER_HPP

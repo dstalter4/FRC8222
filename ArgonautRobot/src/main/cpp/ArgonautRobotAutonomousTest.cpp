@@ -1,11 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @file   CmsdRobotAutonomousTest.cpp
+/// @file   ArgonautRobotAutonomousTest.cpp
 /// @author David Stalter
 ///
 /// @details
-/// Implementation of an autonomous test routines for CmsdRobot.
+/// Implementation of an autonomous test routines for ArgonautRobot.
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 // SYSTEM INCLUDES
@@ -21,17 +21,17 @@
 
 // C++ INCLUDES
 #include "RobotUtils.hpp"                           // for DisplayMessage()
-#include "CmsdRobot.hpp"                            // for robot class declaration
-#include "CmsdRobotAutonomous.hpp"                  // for autonomous declarations
+#include "ArgonautRobot.hpp"                        // for robot class declaration
+#include "ArgonautRobotAutonomous.hpp"              // for autonomous declarations
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::AutonomousTestRoutine
+/// @method ArgonautRobot::AutonomousTestRoutine
 ///
 /// Autonomous test routine.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::AutonomousTestRoutine()
+void ArgonautRobot::AutonomousTestRoutine()
 {
     // Returning from here will enter the idle state until autonomous is over
     RobotUtils::DisplayMessage("Auto test routine done.");
@@ -39,12 +39,12 @@ void CmsdRobot::AutonomousTestRoutine()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::AutonomousTestSwerveRoutine
+/// @method ArgonautRobot::AutonomousTestSwerveRoutine
 ///
 /// Autonomous swerve test routine.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::AutonomousTestSwerveRoutine()
+void ArgonautRobot::AutonomousTestSwerveRoutine()
 {
     // Simple demonstration of directional movements
     m_AutoSwerveDirections.SetSwerveDirections(RobotTranslation::ROBOT_TRANSLATION_FORWARD, RobotStrafe::ROBOT_NO_STRAFE, RobotRotation::ROBOT_NO_ROTATION);
@@ -70,12 +70,12 @@ void CmsdRobot::AutonomousTestSwerveRoutine()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::AutonomousTestTrajectoryRoutine
+/// @method ArgonautRobot::AutonomousTestTrajectoryRoutine
 ///
 /// Autonomous swerve test routine.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::AutonomousTestTrajectoryRoutine()
+void ArgonautRobot::AutonomousTestTrajectoryRoutine()
 {
     // Swerve trajectory routine, but requires switching to command based robot.
 

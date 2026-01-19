@@ -5,7 +5,7 @@
 /// @details
 /// Declarations describing the drive configuration.
 ///
-/// Copyright (c) 2025 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef DRIVECONFIGURATION_HPP
@@ -22,12 +22,12 @@
 
 
 ////////////////////////////////////////////////////////////////
-/// @namespace Cmsd::Drive::Config
+/// @namespace Argonaut::Drive::Config
 ///
 /// Provides configuration information about the drive system.
 ///
 ////////////////////////////////////////////////////////////////
-namespace Cmsd
+namespace Argonaut
 {
 namespace Drive
 {

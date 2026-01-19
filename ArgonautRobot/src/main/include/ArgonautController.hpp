@@ -1,42 +1,42 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @file   CmsdController.hpp
+/// @file   ArgonautController.hpp
 /// @author David Stalter
 ///
 /// @details
 /// A class designed to interface to several controller types, such as a custom
-/// CMSD controller implementation or the built-in FRC types.
+/// Argonaut controller implementation or the built-in FRC types.
 ///
 ///
-/// Copyright (c) 2025 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CMSDCONTROLLER_HPP
-#define CMSDCONTROLLER_HPP
+#ifndef ARGONAUTCONTROLLER_HPP
+#define ARGONAUTCONTROLLER_HPP
 
 // SYSTEM INCLUDES
 // <none>
 
 // C INCLUDES
-#include "frc/GenericHID.h"             // for base class declaration
-#include "frc/Joystick.h"               // for interacting with joysticks
-#include "frc/PS4Controller.h"          // for creating built-in PS4 controller objects
-#include "frc/XboxController.h"         // for creating built-in XBox controller objects
+#include "frc/GenericHID.h"                 // for base class declaration
+#include "frc/Joystick.h"                   // for interacting with joysticks
+#include "frc/PS4Controller.h"              // for creating built-in PS4 controller objects
+#include "frc/XboxController.h"             // for creating built-in XBox controller objects
 
 // C++ INCLUDES
-#include "ControllerConfiguration.hpp"  // for the controller axis/button mappings
-#include "CmsdCustomController.hpp"     // for creating custom CMSD controllers
+#include "ControllerConfiguration.hpp"      // for the controller axis/button mappings
+#include "ArgonautCustomController.hpp"     // for creating custom Argonaut controllers
 
 using namespace frc;
 
 
 ////////////////////////////////////////////////////////////////
-/// @namespace Cmsd::Controller
+/// @namespace Argonaut::Controller
 ///
-/// Provides generic declarations for CMSD controller
+/// Provides generic declarations for Argonaut controller
 /// related functionality.
 ///
 ////////////////////////////////////////////////////////////////
-namespace Cmsd
+namespace Argonaut
 {
 namespace Controller
 {
@@ -85,7 +85,7 @@ namespace Controller
 
 
 ////////////////////////////////////////////////////////////////
-/// @class CmsdController<ControllerType>
+/// @class ArgonautController<ControllerType>
 ///
 /// Template class that provides methods for interacting with a
 /// generic controller.  The theory behind this class is to
@@ -104,20 +104,20 @@ namespace Controller
 /// calling GenericHID base methods).  If non-common behavior
 /// is needed, the template method can be specialized.  The
 /// constructor for this class is an example of that.  Custom
-/// CMSD controllers have a different constructor signature
+/// Argonaut controllers have a different constructor signature
 /// than the GenericHID derived objects.  It is specialized to
 /// provide the necessary custom functionality.
 ///
 /// Examples of valid types to instantiate this class with:
-/// Joystick, PS4Controller, XboxController, CmsdCustomController
+/// Joystick, PS4Controller, XboxController, ArgonautCustomController
 ///
 ////////////////////////////////////////////////////////////////
 template <class ControllerType>
-class CmsdController
+class ArgonautController
 {
 public:
     // Constructor, which is specialized for some ControllerTypes
-    CmsdController(Cmsd::Controller::Config::Models controllerModel, int controllerPort);
+    ArgonautController(Argonaut::Controller::Config::Models controllerModel, int controllerPort);
 
     ////////////////////////////////////////////////////////////////
     // Methods to get input from the controller (not currently specialized anywhere)
@@ -139,32 +139,32 @@ public:
     }
 
     ////////////////////////////////////////////////////////////////
-    // Methods to compute CMSD specific parameters (may be specialized)
+    // Methods to compute Argonaut specific parameters (may be specialized)
     ////////////////////////////////////////////////////////////////
 
     double GetThrottleControl();
 
     ////////////////////////////////////////////////////////////////
-    /// @method CmsdController<ControllerType>::Rumble
+    /// @method ArgonautController<ControllerType>::Rumble
     ///
     /// Turns on the controller's rumble feature.
     ///
     ////////////////////////////////////////////////////////////////
-    void Rumble(Cmsd::Controller::RumbleLocation location)
+    void Rumble(Argonaut::Controller::RumbleLocation location)
     {
         switch (location)
         {
-            case Cmsd::Controller::RumbleLocation::RUMBLE_LEFT:
+            case Argonaut::Controller::RumbleLocation::RUMBLE_LEFT:
             {
                 m_pController->SetRumble(GenericHID::RumbleType::kLeftRumble);
                 break;
             }
-            case Cmsd::Controller::RumbleLocation::RUMBLE_RIGHT:
+            case Argonaut::Controller::RumbleLocation::RUMBLE_RIGHT:
             {
                 m_pController->SetRumble(GenericHID::RumbleType::kRightRumble);
                 break;
             }
-            case Cmsd::Controller::RumbleLocation::RUMBLE_BOTH:
+            case Argonaut::Controller::RumbleLocation::RUMBLE_BOTH:
             {
                 m_pController->SetRumble(GenericHID::RumbleType::kLeftRumble);
                 m_pController->SetRumble(GenericHID::RumbleType::kRightRumble);
@@ -178,7 +178,7 @@ public:
     }
 
     ////////////////////////////////////////////////////////////////
-    /// @method CmsdController<ControllerType>::GetPovAsDirection
+    /// @method ArgonautController<ControllerType>::GetPovAsDirection
     ///
     /// Retrieves the POV value as a more easily usable enum value
     /// that represents a direction.
@@ -187,13 +187,13 @@ public:
     /// enum.  Use caution when modifying!
     ///
     ////////////////////////////////////////////////////////////////
-    inline Cmsd::Controller::PovDirections GetPovAsDirection()
+    inline Argonaut::Controller::PovDirections GetPovAsDirection()
     {
         const int POV_NORMALIZATION_ANGLE = 45;
         const int ANGLE_90_DEGREES = 90;
         const int ANGLE_360_DEGREES = 360;
 
-        Cmsd::Controller::PovDirections povDirection = Cmsd::Controller::PovDirections::POV_NOT_PRESSED;
+        Argonaut::Controller::PovDirections povDirection = Argonaut::Controller::PovDirections::POV_NOT_PRESSED;
 
         int povValue = GetPovValue();
         
@@ -213,7 +213,7 @@ public:
             // Use integer division to get a single value that represents the
             // entire range, which can then be directly converted to the enum type.
             // This cast is risky, but the enum was deliberately crafted to support it.
-            povDirection = static_cast<Cmsd::Controller::PovDirections>(povValue / ANGLE_90_DEGREES);
+            povDirection = static_cast<Argonaut::Controller::PovDirections>(povValue / ANGLE_90_DEGREES);
         }
 
         return povDirection;
@@ -233,11 +233,11 @@ public:
     /// purpose (which should always be the case).
     ///
     ////////////////////////////////////////////////////////////////
-    inline bool DetectPovChange(Cmsd::Controller::PovDirections povDirection)
+    inline bool DetectPovChange(Argonaut::Controller::PovDirections povDirection)
     {
         bool bPressed = false;
         static bool m_LastPovChangeReported = false;
-        Cmsd::Controller::PovDirections currentPovDirection = GetPovAsDirection();
+        Argonaut::Controller::PovDirections currentPovDirection = GetPovAsDirection();
         if (currentPovDirection != m_LastPovDirection)
         {
             m_LastPovChangeReported = false;
@@ -252,7 +252,7 @@ public:
     }
 
     ////////////////////////////////////////////////////////////////
-    /// @method CmsdController<ControllerType>::DetectButtonChange
+    /// @method ArgonautController<ControllerType>::DetectButtonChange
     ///
     /// This method is used to check if a button has undergone a
     /// state change.  The same button can be used to reverse state
@@ -269,7 +269,7 @@ public:
     /// is detected (press or release).
     ///
     ////////////////////////////////////////////////////////////////
-    inline bool DetectButtonChange(int buttonNumber, Cmsd::Controller::ButtonStateChanges::Transitions transition = Cmsd::Controller::ButtonStateChanges::BUTTON_PRESSED)
+    inline bool DetectButtonChange(int buttonNumber, Argonaut::Controller::ButtonStateChanges::Transitions transition = Argonaut::Controller::ButtonStateChanges::BUTTON_PRESSED)
     {   
         // Create the mask to the bit position for this button
         const uint32_t BUTTON_BIT_POSITION_MASK = 1U << buttonNumber;
@@ -296,11 +296,11 @@ public:
         if ((currentMaskedBit ^ previousMaskedBit) != 0U)
         {
             // Also make sure the transition is to the correct edge
-            if ((transition == Cmsd::Controller::ButtonStateChanges::BUTTON_PRESSED) && (currentMaskedBit != 0U))
+            if ((transition == Argonaut::Controller::ButtonStateChanges::BUTTON_PRESSED) && (currentMaskedBit != 0U))
             {
                 bTriggerChanged = true;
             }
-            else if ((transition == Cmsd::Controller::ButtonStateChanges::BUTTON_RELEASED) && (currentMaskedBit == 0U))
+            else if ((transition == Argonaut::Controller::ButtonStateChanges::BUTTON_RELEASED) && (currentMaskedBit == 0U))
             {
                 bTriggerChanged = true;
             }
@@ -320,25 +320,25 @@ protected:
     ControllerType * m_pController;
 
     // The model of controller being instantiated
-    Cmsd::Controller::Config::Models m_ControllerModel;
+    Argonaut::Controller::Config::Models m_ControllerModel;
 
 private:
     // Tracks the state of the buttons (pressed/released)
-    Cmsd::Controller::ButtonStateChanges m_ButtonStateChanges;
-    Cmsd::Controller::PovDirections m_LastPovDirection;
+    Argonaut::Controller::ButtonStateChanges m_ButtonStateChanges;
+    Argonaut::Controller::PovDirections m_LastPovDirection;
     bool m_LastPovChangeReported;
 
     // Prevent copying/assignment
-    CmsdController(const CmsdController&) = delete;
-    CmsdController& operator=(const CmsdController&) = delete;
+    ArgonautController(const ArgonautController&) = delete;
+    ArgonautController& operator=(const ArgonautController&) = delete;
 };
 
 
 ////////////////////////////////////////////////////////////////
-/// @class CmsdDriveController<DriveControllerType>
+/// @class ArgonautDriveController<DriveControllerType>
 ///
 /// Template class specifically for a drive controller.  It
-/// derives from the previously declared CmsdController template
+/// derives from the previously declared ArgonautController template
 /// class and behaves the same way, other than to provide some
 /// additional methods that are specific to drive controllers
 /// only (such as getting drive inputs as complex combinations
@@ -347,10 +347,10 @@ private:
 ///
 ////////////////////////////////////////////////////////////////
 template <class DriveControllerType>
-class CmsdDriveController : public CmsdController<DriveControllerType>
+class ArgonautDriveController : public ArgonautController<DriveControllerType>
 {
 public:
-    CmsdDriveController(Cmsd::Controller::Config::Models controllerModel, int controllerPort) : CmsdController<DriveControllerType>(controllerModel, controllerPort)
+    ArgonautDriveController(Argonaut::Controller::Config::Models controllerModel, int controllerPort) : ArgonautController<DriveControllerType>(controllerModel, controllerPort)
     {
     }
 
@@ -363,8 +363,8 @@ public:
 
 private:
     // Prevent copying/assignment
-    CmsdDriveController(const CmsdDriveController&) = delete;
-    CmsdDriveController& operator=(const CmsdDriveController&) = delete;
+    ArgonautDriveController(const ArgonautDriveController&) = delete;
+    ArgonautDriveController& operator=(const ArgonautDriveController&) = delete;
 };
 
 
@@ -384,25 +384,25 @@ private:
 ///
 ////////////////////////////////////////////////////////////////
 
-// Specialization of the constructor for CmsdCustomController type
+// Specialization of the constructor for ArgonautCustomController type
 template <>
-CmsdController<CmsdCustomController>::CmsdController(Cmsd::Controller::Config::Models controllerModel, int controllerPort);
+ArgonautController<ArgonautCustomController>::ArgonautController(Argonaut::Controller::Config::Models controllerModel, int controllerPort);
 
-// Specialization of GetThrottleControl() for CmsdCustomController type
+// Specialization of GetThrottleControl() for ArgonautCustomController type
 template <>
-double CmsdController<CmsdCustomController>::GetThrottleControl();
+double ArgonautController<ArgonautCustomController>::GetThrottleControl();
 
-// Specialization of GetDriveXInput() for CmsdCustomController type
+// Specialization of GetDriveXInput() for ArgonautCustomController type
 template <>
-double CmsdDriveController<CmsdCustomController>::GetDriveXInput();
+double ArgonautDriveController<ArgonautCustomController>::GetDriveXInput();
 
-// Specialization of GetDriveYInput() for CmsdCustomController type
+// Specialization of GetDriveYInput() for ArgonautCustomController type
 template <>
-double CmsdDriveController<CmsdCustomController>::GetDriveYInput();
+double ArgonautDriveController<ArgonautCustomController>::GetDriveYInput();
 
-// Specialization of GetDriveRotateInput() for CmsdCustomController type
+// Specialization of GetDriveRotateInput() for ArgonautCustomController type
 template <>
-double CmsdDriveController<CmsdCustomController>::GetDriveRotateInput();
+double ArgonautDriveController<ArgonautCustomController>::GetDriveRotateInput();
 
 
 ////////////////////////////////////////////////////////////////
@@ -411,20 +411,20 @@ double CmsdDriveController<CmsdCustomController>::GetDriveRotateInput();
 ////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdController<ControllerType>::CmsdCustomController
+/// @method ArgonautController<ControllerType>::ArgonautCustomController
 ///
 /// Constructor.  Instantiates the actual controller object that
 /// receives input.
 ///
 ////////////////////////////////////////////////////////////////
 template <class ControllerType>
-CmsdController<ControllerType>::CmsdController(Cmsd::Controller::Config::Models controllerModel, int controllerPort) :
+ArgonautController<ControllerType>::ArgonautController(Argonaut::Controller::Config::Models controllerModel, int controllerPort) :
     m_pController(new ControllerType(controllerPort)),
     m_ControllerModel(controllerModel),
     m_ButtonStateChanges(),
-    m_LastPovDirection(Cmsd::Controller::PovDirections::POV_NOT_PRESSED),
+    m_LastPovDirection(Argonaut::Controller::PovDirections::POV_NOT_PRESSED),
     m_LastPovChangeReported(false)
 {
 }
 
-#endif // CMSDCONTROLLER_HPP
+#endif // ARGONAUTCONTROLLER_HPP

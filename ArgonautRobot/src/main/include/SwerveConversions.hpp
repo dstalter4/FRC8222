@@ -5,7 +5,7 @@
 /// @details
 /// Utility routines for swerve drive conversions.
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SWERVECONVERSIONS_HPP

@@ -3,10 +3,10 @@
 /// @author David Stalter
 ///
 /// @details
-/// Implements the specializations for the CmsdController and
-/// CmsdDriveController template classes.
+/// Implements the specializations for the ArgonautController and
+/// ArgonautDriveController template classes.
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 // SYSTEM INCLUDES
@@ -16,51 +16,51 @@
 // (none)
 
 // C++ INCLUDES
-#include "CmsdController.hpp"                       // for class declarations
+#include "ArgonautController.hpp"                   // for class declarations
 
 // STATIC MEMBER DATA
 // (none)
 
 
 ////////////////////////////////////////////////////////////////
-/// CmsdCustomController template specializations for both
-/// CmsdController<> and CmsdDriveController<>.
+/// ArgonautCustomController template specializations for both
+/// ArgonautController<> and ArgonautDriveController<>.
 ///
 ////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdController<CmsdCustomController>::CmsdController
+/// @method ArgonautController<ArgonautCustomController>::ArgonautController
 ///
-/// Constructor for a template instantiated with a custom CMSD
+/// Constructor for a template instantiated with a custom Argonaut
 /// controller type.
 ///
 ////////////////////////////////////////////////////////////////
 template <>
-CmsdController<CmsdCustomController>::CmsdController(Cmsd::Controller::Config::Models controllerModel, int controllerPort) :
-    m_pController(new CmsdCustomController(controllerModel, controllerPort)),
+ArgonautController<ArgonautCustomController>::ArgonautController(Argonaut::Controller::Config::Models controllerModel, int controllerPort) :
+    m_pController(new ArgonautCustomController(controllerModel, controllerPort)),
     m_ControllerModel(controllerModel),
     m_ButtonStateChanges()
 {
 }
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdController<CmsdCustomController>::GetThrottleControl
+/// @method ArgonautController<ArgonautCustomController>::GetThrottleControl
 ///
 /// Retrieves a throttle value for the controller.  Specialized
 /// because some built-in types have an available fixed
 /// position axis that can provide throttle (such as a z-axis).
-/// This function just needs to pass through for a custom CMSD
+/// This function just needs to pass through for a custom Argonaut
 /// controller.
 ///
 ////////////////////////////////////////////////////////////////
 template <>
-double CmsdController<CmsdCustomController>::GetThrottleControl()
+double ArgonautController<ArgonautCustomController>::GetThrottleControl()
 {
     return m_pController->GetThrottle();
 }
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdDriveController<CmsdCustomController>::GetDriveXInput
+/// @method ArgonautDriveController<ArgonautCustomController>::GetDriveXInput
 ///
 /// Retrieves the x-axis drive value from controller inputs.
 /// Specialized to provide video game style drive controls
@@ -68,13 +68,13 @@ double CmsdController<CmsdCustomController>::GetThrottleControl()
 ///
 ////////////////////////////////////////////////////////////////
 template <>
-double CmsdDriveController<CmsdCustomController>::GetDriveXInput()
+double ArgonautDriveController<ArgonautCustomController>::GetDriveXInput()
 {
     return m_pController->GetDriveX();
 }
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdDriveController<CmsdCustomController>::GetDriveYInput
+/// @method ArgonautDriveController<ArgonautCustomController>::GetDriveYInput
 ///
 /// Retrieves the y-axis drive value from controller inputs.
 /// Specialized to provide video game style drive controls
@@ -82,19 +82,19 @@ double CmsdDriveController<CmsdCustomController>::GetDriveXInput()
 ///
 ////////////////////////////////////////////////////////////////
 template <>
-double CmsdDriveController<CmsdCustomController>::GetDriveYInput()
+double ArgonautDriveController<ArgonautCustomController>::GetDriveYInput()
 {
     return m_pController->GetDriveY();
 }
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdDriveController<CmsdCustomController>::GetDriveRotateInput
+/// @method ArgonautDriveController<ArgonautCustomController>::GetDriveRotateInput
 ///
 /// Retrieves the drive rotate axis value from controller inputs.
 ///
 ////////////////////////////////////////////////////////////////
 template <>
-double CmsdDriveController<CmsdCustomController>::GetDriveRotateInput()
+double ArgonautDriveController<ArgonautCustomController>::GetDriveRotateInput()
 {
     return m_pController->GetDriveRotate();
 }

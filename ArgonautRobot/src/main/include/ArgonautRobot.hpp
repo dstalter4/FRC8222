@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @file   CmsdRobot.hpp
+/// @file   ArgonautRobot.hpp
 /// @author David Stalter
 ///
 /// @details
@@ -12,8 +12,8 @@
 /// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CMSDROBOT_HPP
-#define CMSDROBOT_HPP
+#ifndef ARGONAUTROBOT_HPP
+#define ARGONAUTROBOT_HPP
 
 // SYSTEM INCLUDES
 #include <cmath>                                            // for M_PI
@@ -36,8 +36,8 @@
 
 // C++ INCLUDES
 #include "DriveConfiguration.hpp"                           // for information on the drive config
-#include "CmsdController.hpp"                               // for controller interaction
-#include "CmsdTalon.hpp"                                    // for custom Talon control
+#include "ArgonautController.hpp"                           // for controller interaction
+#include "ArgonautTalon.hpp"                                // for custom Talon control
 #include "RobotUtils.hpp"                                   // for ASSERT, DEBUG_PRINTS
 #include "SwerveDrive.hpp"                                  // for using swerve drive
 #include "ctre/phoenix6/CANBus.hpp"                         // for creating CANBus bojects
@@ -54,17 +54,17 @@ using namespace ctre::phoenix6::signals;
 
 
 ////////////////////////////////////////////////////////////////
-/// @class CmsdRobot
+/// @class ArgonautRobot
 ///
 /// Derived class from TimedRobot.  The object that will
 /// control all robot functionality.
 ///
 ////////////////////////////////////////////////////////////////
-class CmsdRobot : public TimedRobot
+class ArgonautRobot : public TimedRobot
 {
 public:
     friend class RobotCamera;
-    friend class CmsdRobotTest;
+    friend class ArgonautRobotTest;
 
     // MEMBER FUNCTIONS
     
@@ -89,20 +89,20 @@ public:
     virtual void DisabledPeriodic() override;
     
     // Constructor, destructor, copy, assignment
-    CmsdRobot();
-    virtual ~CmsdRobot() = default;
-    CmsdRobot(CmsdRobot&& rhs) = default;
-    CmsdRobot& operator=(CmsdRobot&& rhs) = default;
+    ArgonautRobot();
+    virtual ~ArgonautRobot() = default;
+    ArgonautRobot(ArgonautRobot&& rhs) = default;
+    ArgonautRobot& operator=(ArgonautRobot&& rhs) = default;
       
 private:
 
     // TYPEDEFS
-    typedef Cmsd::Talon::MotorGroupControlMode MotorGroupControlMode;
-    typedef Cmsd::Talon::TalonFxMotorController TalonFxMotorController;
-    typedef Cmsd::Controller::Config::Models ControllerModels;
-    typedef Cmsd::Controller::Config::Mappings ControllerMappings;
-    typedef CmsdDriveController<CmsdCustomController> DriveControllerType;
-    typedef CmsdController<CmsdCustomController> AuxControllerType;
+    typedef Argonaut::Talon::MotorGroupControlMode MotorGroupControlMode;
+    typedef Argonaut::Talon::TalonFxMotorController TalonFxMotorController;
+    typedef Argonaut::Controller::Config::Models ControllerModels;
+    typedef Argonaut::Controller::Config::Mappings ControllerMappings;
+    typedef ArgonautDriveController<ArgonautCustomController> DriveControllerType;
+    typedef ArgonautController<ArgonautCustomController> AuxControllerType;
     
     // ENUMS
     enum RobotMode
@@ -170,10 +170,10 @@ private:
     // This makes retrieving the address difficult.  To work around this,
     // we'll allocate some static storage for a pointer to a robot object.
     // When RobotInit() is called, m_pThis will be filled out.  This works
-    // because only one CmsdRobot object is ever constructed.
-    static CmsdRobot * m_pThis;
+    // because only one ArgonautRobot object is ever constructed.
+    static ArgonautRobot * m_pThis;
     inline void SetStaticThisInstance() { m_pThis = this; }
-    inline static CmsdRobot * GetRobotInstance() { return m_pThis; }
+    inline static ArgonautRobot * GetRobotInstance() { return m_pThis; }
 
     // Increments a variable to indicate the robot code is successfully running
     inline void HeartBeat();
@@ -194,7 +194,7 @@ private:
     inline void AutonomousRotateByGyroSequence(RobotRotation robotRotation, double rotateDegrees, double rotateSpeed, bool bFieldRelative);
 
     // Autonomous routines
-    // @todo: Make CmsdRobotAutonomous a friend and move these out (requires accessor to *this)!
+    // @todo: Make ArgonautRobotAutonomous a friend and move these out (requires accessor to *this)!
     void AutonomousRoutine1();
     void AutonomousRoutine2();
     void AutonomousRoutine3();
@@ -296,8 +296,8 @@ private:
     //       necessary when changing these types!
     static const ControllerModels DRIVE_CONTROLLER_MODEL                        = ControllerModels::CUSTOM_XBOX;
     static const ControllerModels AUX_CONTROLLER_MODEL                          = ControllerModels::CUSTOM_XBOX;
-    static constexpr const ControllerMappings * const DRIVE_CONTROLLER_MAPPINGS = Cmsd::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL);
-    static constexpr const ControllerMappings * const AUX_CONTROLLER_MAPPINGS   = Cmsd::Controller::Config::GetControllerMapping(AUX_CONTROLLER_MODEL);
+    static constexpr const ControllerMappings * const DRIVE_CONTROLLER_MAPPINGS = Argonaut::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL);
+    static constexpr const ControllerMappings * const AUX_CONTROLLER_MAPPINGS   = Argonaut::Controller::Config::GetControllerMapping(AUX_CONTROLLER_MODEL);
     
     static const int                DRIVE_JOYSTICK_PORT                     = 0;
     static const int                AUX_JOYSTICK_PORT                       = 1;
@@ -454,12 +454,12 @@ private:
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::SetLedsToAllianceColor
+/// @method ArgonautRobot::SetLedsToAllianceColor
 ///
 /// Sets the LEDs to the alliance color.
 ///
 ////////////////////////////////////////////////////////////////
-inline void CmsdRobot::SetLedsToAllianceColor()
+inline void ArgonautRobot::SetLedsToAllianceColor()
 {
     switch (m_AllianceColor.value())
     {
@@ -485,12 +485,12 @@ inline void CmsdRobot::SetLedsToAllianceColor()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::HeartBeat
+/// @method ArgonautRobot::HeartBeat
 ///
 /// Increments the heartbeat counter.
 ///
 ////////////////////////////////////////////////////////////////
-inline void CmsdRobot::HeartBeat()
+inline void ArgonautRobot::HeartBeat()
 {
     m_HeartBeat++;
     SmartDashboard::PutNumber("Heartbeat", m_HeartBeat);
@@ -499,13 +499,13 @@ inline void CmsdRobot::HeartBeat()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::CheckAndUpdateRobotMode
+/// @method ArgonautRobot::CheckAndUpdateRobotMode
 ///
 /// Checks the current robot mode for a state change and updates
 /// accordingly, including displaying a message.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::CheckAndUpdateRobotMode(RobotMode robotMode)
+void ArgonautRobot::CheckAndUpdateRobotMode(RobotMode robotMode)
 {
     // These array messages match the order of the RobotMode enum
     const char * MODE_CHANGE_ENTER_MESSAGES[] = 
@@ -536,4 +536,4 @@ void CmsdRobot::CheckAndUpdateRobotMode(RobotMode robotMode)
     }
 }
 
-#endif // CMSDROBOT_HPP
+#endif // ARGONAUTROBOT_HPP

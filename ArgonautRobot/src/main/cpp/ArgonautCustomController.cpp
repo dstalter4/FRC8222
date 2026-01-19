@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @file   CmsdController.cpp
+/// @file   ArgonautController.cpp
 /// @author David Stalter
 ///
 /// @details
 /// A class designed to interface to several controller types (Logitech Gamepad,
 /// Xbox GameSir, PS4, etc.) with custom responses.
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 // SYSTEM INCLUDES
@@ -18,19 +18,19 @@
 // C++ INCLUDES
 #include "DriveConfiguration.hpp"               // for DRIVE_STYLE
 #include "RobotUtils.hpp"                       // for ASSERT, DEBUG_PRINTS
-#include "CmsdController.hpp"                   // for class declaration
+#include "ArgonautController.hpp"               // for class declaration
 
 // STATIC MEMBER DATA
 // (none)
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdCustomController::CmsdCustomController
+/// @method ArgonautCustomController::ArgonautCustomController
 ///
 /// Constructor.
 ///
 ////////////////////////////////////////////////////////////////
-CmsdCustomController::CmsdCustomController(Cmsd::Controller::Config::Models controllerModel, int controllerPort)
+ArgonautCustomController::ArgonautCustomController(Argonaut::Controller::Config::Models controllerModel, int controllerPort)
 : GenericHID(controllerPort)
 , CONTROLLER_MODEL(controllerModel)
 , CONTROLLER_MAPPINGS(GetControllerMapping(controllerModel))
@@ -42,12 +42,12 @@ CmsdCustomController::CmsdCustomController(Cmsd::Controller::Config::Models cont
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdCustomController::GetDriveX
+/// @method ArgonautCustomController::GetDriveX
 ///
 /// Returns x-axis drive input.
 ///
 ////////////////////////////////////////////////////////////////
-double CmsdCustomController::GetDriveX() const
+double ArgonautCustomController::GetDriveX() const
 {
     double xAxisValue = GenericHID::GetRawAxis(CONTROLLER_MAPPINGS->AXIS_MAPPINGS.LEFT_X_AXIS);
  
@@ -60,23 +60,23 @@ double CmsdCustomController::GetDriveX() const
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdCustomController::GetDriveY
+/// @method ArgonautCustomController::GetDriveY
 ///
 /// Returns y-axis drive input.
 ///
 ////////////////////////////////////////////////////////////////
-double CmsdCustomController::GetDriveY() const
+double ArgonautCustomController::GetDriveY() const
 {
     double yAxisValue = 0.0;
 
-    switch (Cmsd::Drive::Config::DRIVE_STYLE)
+    switch (Argonaut::Drive::Config::DRIVE_STYLE)
     {
-        case Cmsd::Drive::Config::DriveStyle::ARCADE_DRIVE:
+        case Argonaut::Drive::Config::DriveStyle::ARCADE_DRIVE:
         {
             yAxisValue = GenericHID::GetRawAxis(CONTROLLER_MAPPINGS->AXIS_MAPPINGS.LEFT_Y_AXIS);
             break;
         }
-        case Cmsd::Drive::Config::DriveStyle::GTA_DRIVE:
+        case Argonaut::Drive::Config::DriveStyle::GTA_DRIVE:
         {
             // In order to keep the drive logic the same across
             // all controller models, full forward is represented
@@ -116,7 +116,7 @@ double CmsdCustomController::GetDriveY() const
 
             break;
         }
-        case Cmsd::Drive::Config::DriveStyle::TANK_DRIVE:
+        case Argonaut::Drive::Config::DriveStyle::TANK_DRIVE:
         default:
         {
             ASSERT(false);
@@ -130,12 +130,12 @@ double CmsdCustomController::GetDriveY() const
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdCustomController::GetDriveRotate
+/// @method ArgonautCustomController::GetDriveRotate
 ///
 /// Returns the rotate drive input.
 ///
 ////////////////////////////////////////////////////////////////
-double CmsdCustomController::GetDriveRotate() const
+double ArgonautCustomController::GetDriveRotate() const
 {
     return GetRawAxis(CONTROLLER_MAPPINGS->AXIS_MAPPINGS.RIGHT_X_AXIS);
 }
@@ -143,7 +143,7 @@ double CmsdCustomController::GetDriveRotate() const
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdCustomController::GetThrottle
+/// @method ArgonautCustomController::GetThrottle
 ///
 /// Returns throttle control.  Most controllers do not have an
 /// axis that retains its position when not being manipulated by
@@ -151,7 +151,7 @@ double CmsdCustomController::GetDriveRotate() const
 /// and remembered in software.
 ///
 ////////////////////////////////////////////////////////////////
-double CmsdCustomController::GetThrottle() const
+double ArgonautCustomController::GetThrottle() const
 {
     // Not implemented yet, just return the default value
     return m_ThrottleValue;

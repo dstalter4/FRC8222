@@ -1,9 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @file   CmsdRobot.cpp
+/// @file   ArgonautRobot.cpp
 /// @author David Stalter
 ///
 /// @details
-/// Implementation of the CmsdRobot class.  This file contains the functions
+/// Implementation of the ArgonautRobot class.  This file contains the functions
 /// for full robot operation in FRC.  It contains the autonomous and operator
 /// control routines as well as all necessary support for interacting with all
 /// motors, sensors and input/outputs on the robot.
@@ -19,21 +19,21 @@
 // (none)
 
 // C++ INCLUDES
-#include "CmsdRobot.hpp"                // for class declaration (and other headers)
+#include "ArgonautRobot.hpp"            // for class declaration (and other headers)
 //#include "RobotCamera.hpp"              // for interacting with cameras
 #include "RobotUtils.hpp"               // for Trim(), Limit() and DisplayMessage()
 
 // STATIC MEMBER VARIABLES
-CmsdRobot * CmsdRobot::m_pThis;
+ArgonautRobot * ArgonautRobot::m_pThis;
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::CmsdRobot
+/// @method ArgonautRobot::ArgonautRobot
 ///
 /// Constructor.  Instantiates all robot control objects.
 ///
 ////////////////////////////////////////////////////////////////
-CmsdRobot::CmsdRobot() :
+ArgonautRobot::ArgonautRobot() :
     m_AutonomousChooser                 (),
     m_AutoSwerveDirections              (),
     m_pDriveController                  (new DriveControllerType(DRIVE_CONTROLLER_MODEL, DRIVE_JOYSTICK_PORT)),
@@ -68,9 +68,9 @@ CmsdRobot::CmsdRobot() :
     m_AutonomousChooser.AddOption(AUTO_TEST_ROUTINE_STRING, AUTO_TEST_ROUTINE_STRING);
     SmartDashboard::PutData("Autonomous Modes", &m_AutonomousChooser);
 
-    RobotUtils::DisplayFormattedMessage("The drive forward axis is: %d\n", Cmsd::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.RIGHT_TRIGGER);
-    RobotUtils::DisplayFormattedMessage("The drive reverse axis is: %d\n", Cmsd::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.LEFT_TRIGGER);
-    RobotUtils::DisplayFormattedMessage("The drive left/right axis is: %d\n", Cmsd::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.LEFT_X_AXIS);
+    RobotUtils::DisplayFormattedMessage("The drive forward axis is: %d\n", Argonaut::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.RIGHT_TRIGGER);
+    RobotUtils::DisplayFormattedMessage("The drive reverse axis is: %d\n", Argonaut::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.LEFT_TRIGGER);
+    RobotUtils::DisplayFormattedMessage("The drive left/right axis is: %d\n", Argonaut::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.LEFT_X_AXIS);
 
     ConfigureMotorControllers();
 
@@ -92,7 +92,7 @@ CmsdRobot::CmsdRobot() :
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::ResetMemberData
+/// @method ArgonautRobot::ResetMemberData
 ///
 /// This method resets relevant member data variables.  Since
 /// the robot object is only constructed once, it may be
@@ -105,19 +105,19 @@ CmsdRobot::CmsdRobot() :
 /// once on program start up).
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::ResetMemberData()
+void ArgonautRobot::ResetMemberData()
 {
 }
 
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::RobotInit
+/// @method ArgonautRobot::RobotInit
 ///
 /// This method is run when initializing the robot.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::RobotInit()
+void ArgonautRobot::RobotInit()
 {
     RobotUtils::DisplayMessage("RobotInit called.");
     SetStaticThisInstance();
@@ -126,13 +126,13 @@ void CmsdRobot::RobotInit()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::RobotPeriodic
+/// @method ArgonautRobot::RobotPeriodic
 ///
 /// This method is run in all robot states.  It is called each
 /// time a new packet is received from the driver station.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::RobotPeriodic()
+void ArgonautRobot::RobotPeriodic()
 {
     static bool bRobotPeriodicStarted = false;
     if (!bRobotPeriodicStarted)
@@ -147,13 +147,13 @@ void CmsdRobot::RobotPeriodic()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::CheckIfRioPinsAreStable
+/// @method ArgonautRobot::CheckIfRioPinsAreStable
 ///
 /// Wait for any sensors on the robot that route to the RIO
 /// to stabilize for accurate readings.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::CheckIfRioPinsAreStable()
+void ArgonautRobot::CheckIfRioPinsAreStable()
 {
     // This is the logic to wait to take PWM based sensor readings until the RIO is ready.
     // The behavior of the RIO is that it measures how many microseconds the signal is high
@@ -216,12 +216,12 @@ void CmsdRobot::CheckIfRioPinsAreStable()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::ConfigureMotorControllers
+/// @method ArgonautRobot::ConfigureMotorControllers
 ///
 /// Sets motor controller specific configuration information.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::ConfigureMotorControllers()
+void ArgonautRobot::ConfigureMotorControllers()
 {
     // These are the defaults for the configuration (see TalonFX.h)
     //ctre::phoenix::sensors::AbsoluteSensorRange absoluteSensorRange = ctre::phoenix::sensors::AbsoluteSensorRange::Unsigned_0_to_360;
@@ -299,14 +299,14 @@ void CmsdRobot::ConfigureMotorControllers()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::InitialStateSetup
+/// @method ArgonautRobot::InitialStateSetup
 ///
 /// This method contains the work flow for putting motors,
 /// solenoids, etc. into a known state.  It is intended to be
 /// used by both autonomous and user control.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::InitialStateSetup()
+void ArgonautRobot::InitialStateSetup()
 {
     // First reset any member data
     ResetMemberData();
@@ -347,13 +347,13 @@ void CmsdRobot::InitialStateSetup()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::TeleopInit
+/// @method ArgonautRobot::TeleopInit
 ///
 /// The teleop init method.  This method is called once each
 /// time the robot enters teleop control.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::TeleopInit()
+void ArgonautRobot::TeleopInit()
 {
     RobotUtils::DisplayMessage("TeleopInit called.");
     
@@ -373,20 +373,20 @@ void CmsdRobot::TeleopInit()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::TeleopPeriodic
+/// @method ArgonautRobot::TeleopPeriodic
 ///
 /// The teleop control method.  This method is called
 /// periodically while the robot is in teleop control.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::TeleopPeriodic()
+void ArgonautRobot::TeleopPeriodic()
 {
     // Log a mode change if one occurred
     CheckAndUpdateRobotMode(ROBOT_MODE_TELEOP);
 
     HeartBeat();
 
-    if (Cmsd::Drive::Config::USE_SWERVE_DRIVE)
+    if (Argonaut::Drive::Config::USE_SWERVE_DRIVE)
     {
         SwerveDriveSequence();
     }
@@ -401,12 +401,12 @@ void CmsdRobot::TeleopPeriodic()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::UpdateSmartDashboard
+/// @method ArgonautRobot::UpdateSmartDashboard
 ///
 /// Updates values in the smart dashboard.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::UpdateSmartDashboard()
+void ArgonautRobot::UpdateSmartDashboard()
 {
     // @todo: Check if RobotPeriodic() is called every 20ms and use static counter.
     // Give the drive team some state information
@@ -416,13 +416,13 @@ void CmsdRobot::UpdateSmartDashboard()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::PneumaticSequence
+/// @method ArgonautRobot::PneumaticSequence
 ///
 /// This method contains the main workflow for updating the
 /// state of the pnemuatics on the robot.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::PneumaticSequence()
+void ArgonautRobot::PneumaticSequence()
 {
     // @todo: Monitor other compressor API data?
     SmartDashboard::PutBoolean("Compressor status", m_pCompressor->IsEnabled());
@@ -431,20 +431,20 @@ void CmsdRobot::PneumaticSequence()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::CameraSequence
+/// @method ArgonautRobot::CameraSequence
 ///
 /// This method handles camera related behavior.  See the
 /// RobotCamera class for full details.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::CameraSequence()
+void ArgonautRobot::CameraSequence()
 {
 }
 
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::SwerveDriveSequence
+/// @method ArgonautRobot::SwerveDriveSequence
 ///
 /// This method contains the main workflow for swerve drive
 /// control.  It will gather input from the drive joystick and
@@ -453,7 +453,7 @@ void CmsdRobot::CameraSequence()
 /// on to the swerve drive system.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::SwerveDriveSequence()
+void ArgonautRobot::SwerveDriveSequence()
 {
     // Check for a switch between field relative and robot centric
     static bool bFieldRelative = true;
@@ -478,34 +478,34 @@ void CmsdRobot::SwerveDriveSequence()
     // Override normal control if a fine positioning request is made
     switch (m_pDriveController->GetPovAsDirection())
     {
-        case Cmsd::Controller::PovDirections::POV_UP:
+        case Argonaut::Controller::PovDirections::POV_UP:
         {
             translationAxis = SWERVE_DRIVE_SLOW_SPEED;
             strafeAxis = 0.0;
             rotationAxis = 0.0;
             break;
         }
-        case Cmsd::Controller::PovDirections::POV_DOWN:
+        case Argonaut::Controller::PovDirections::POV_DOWN:
         {
             translationAxis = -SWERVE_DRIVE_SLOW_SPEED;
             strafeAxis = 0.0;
             rotationAxis = 0.0;
             break;
         }
-        case Cmsd::Controller::PovDirections::POV_LEFT:
+        case Argonaut::Controller::PovDirections::POV_LEFT:
         {
             // Left/right POV control can either toggle strafe or rotation
             translationAxis = 0.0;
-            strafeAxis = (Cmsd::Drive::Config::SWERVE_SLOW_USE_ROTATION_AXIS) ? (0.0) : (SWERVE_DRIVE_SLOW_SPEED);
-            rotationAxis = (Cmsd::Drive::Config::SWERVE_SLOW_USE_ROTATION_AXIS) ? (SWERVE_ROTATE_SLOW_SPEED) : (0.0);
+            strafeAxis = (Argonaut::Drive::Config::SWERVE_SLOW_USE_ROTATION_AXIS) ? (0.0) : (SWERVE_DRIVE_SLOW_SPEED);
+            rotationAxis = (Argonaut::Drive::Config::SWERVE_SLOW_USE_ROTATION_AXIS) ? (SWERVE_ROTATE_SLOW_SPEED) : (0.0);
             break;
         }
-        case Cmsd::Controller::PovDirections::POV_RIGHT:
+        case Argonaut::Controller::PovDirections::POV_RIGHT:
         {
             // Left/right POV control can either toggle strafe or rotation
             translationAxis = 0.0;
-            strafeAxis = (Cmsd::Drive::Config::SWERVE_SLOW_USE_ROTATION_AXIS) ? (0.0) : (-SWERVE_DRIVE_SLOW_SPEED);
-            rotationAxis = (Cmsd::Drive::Config::SWERVE_SLOW_USE_ROTATION_AXIS) ? (-SWERVE_ROTATE_SLOW_SPEED) : (0.0);
+            strafeAxis = (Argonaut::Drive::Config::SWERVE_SLOW_USE_ROTATION_AXIS) ? (0.0) : (-SWERVE_DRIVE_SLOW_SPEED);
+            rotationAxis = (Argonaut::Drive::Config::SWERVE_SLOW_USE_ROTATION_AXIS) ? (-SWERVE_ROTATE_SLOW_SPEED) : (0.0);
             break;
         }
         default:
@@ -536,13 +536,13 @@ void CmsdRobot::SwerveDriveSequence()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::DisabledInit
+/// @method ArgonautRobot::DisabledInit
 ///
 /// The disabled init method.  This method is called once each
 /// time the robot enters disabled mode.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::DisabledInit()
+void ArgonautRobot::DisabledInit()
 {
     RobotUtils::DisplayMessage("DisabledInit called.");
 
@@ -557,13 +557,13 @@ void CmsdRobot::DisabledInit()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::DisabledPeriodic
+/// @method ArgonautRobot::DisabledPeriodic
 ///
 /// The disabled control method.  This method is called
 /// periodically while the robot is disabled.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::DisabledPeriodic()
+void ArgonautRobot::DisabledPeriodic()
 {
     // Log a mode change if one occurred
     CheckAndUpdateRobotMode(ROBOT_MODE_DISABLED);
@@ -580,6 +580,6 @@ void CmsdRobot::DisabledPeriodic()
 #ifndef RUNNING_FRC_TESTS
 int main()
 {
-    return frc::StartRobot<CmsdRobot>();
+    return frc::StartRobot<ArgonautRobot>();
 }
 #endif

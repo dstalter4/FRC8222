@@ -1,11 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @file   CmsdRobotAutonomous3.cpp
+/// @file   ArgonautRobotAutonomous3.cpp
 /// @author David Stalter
 ///
 /// @details
-/// Implementation of autonomous routine 3 for CmsdRobot.
+/// Implementation of autonomous routine 3 for ArgonautRobot.
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 // SYSTEM INCLUDES
@@ -15,18 +15,18 @@
 // (none)
 
 // C++ INCLUDES
-#include "RobotUtils.hpp"               // for DisplayMessage()
-#include "CmsdRobot.hpp"                // for robot class declaration
-#include "CmsdRobotAutonomous.hpp"      // for autonomous declarations
+#include "RobotUtils.hpp"                   // for DisplayMessage()
+#include "ArgonautRobot.hpp"                // for robot class declaration
+#include "ArgonautRobotAutonomous.hpp"      // for autonomous declarations
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::AutonomousRoutine3
+/// @method ArgonautRobot::AutonomousRoutine3
 ///
 /// Autonomous routine 3.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::AutonomousRoutine3()
+void ArgonautRobot::AutonomousRoutine3()
 {
     // Returning from here will enter the idle state until autonomous is over
     RobotUtils::DisplayMessage("Auto routine 3 done.");

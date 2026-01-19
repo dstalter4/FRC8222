@@ -3,10 +3,10 @@
 /// @author David Stalter
 ///
 /// @details
-/// Implementation of the CmsdRobot test functions.  This keeps official
+/// Implementation of the ArgonautRobot test functions.  This keeps official
 /// stable robot code isolated.
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 // SYSTEM INCLUDES
@@ -18,32 +18,32 @@
 
 // C++ INCLUDES
 #include "RobotUtils.hpp"               // for DisplayMessage(), DisplayFormattedMessage()
-#include "CmsdRobot.hpp"                // for robot class declaration
+#include "ArgonautRobot.hpp"            // for robot class declaration
 
 
 // Helper macro to get the robot object, only for use in test class code
-#define CMSD_ROBOT_OBJ() CmsdRobot::GetRobotInstance()
+#define ARGONAUT_ROBOT_OBJ() ArgonautRobot::GetRobotInstance()
 
 using namespace rev;
 
 
 ////////////////////////////////////////////////////////////////
-/// @class CmsdRobotTest
+/// @class ArgonautRobotTest
 ///
 /// A class used to test robot functionality.  The intention of
 /// this class is to enable quick tests or rapid prototypes.
-/// It leverages the CmsdRobot 'Test' mode functions to execute
+/// It leverages the ArgonautRobot 'Test' mode functions to execute
 /// routines.  Since it is separate from the 'product' robot
-/// code (in CmsdRobot), it cannot directly use the various
+/// code (in ArgonautRobot), it cannot directly use the various
 /// member objects from that code.  Instead they can be accessed
-/// through the CMSD_ROBOT_OBJ() macro.
+/// through the ARGONAUT_ROBOT_OBJ() macro.
 ///
 /// A second, but currently unused, test approach is also
 /// presented.  This approach attempts to mimic direct use of
-/// the CmsdRobot object members by binding references to them.
+/// the ArgonautRobot object members by binding references to them.
 ///
 ////////////////////////////////////////////////////////////////
-class CmsdRobotTest
+class ArgonautRobotTest
 {
 public:
     static void InitializeCommonPointers();
@@ -67,81 +67,81 @@ private:
     static Joystick * m_pJoystick;
 
     // Alternate test approach (not currently used):
-    // Singleton test object with members bound by reference to CmsdRobot member objects.
+    // Singleton test object with members bound by reference to ArgonautRobot member objects.
     /*
-    CmsdRobotTest() :
-        m_rpDebugOutput(CmsdRobot::GetRobotInstance()->m_pDebugOutput)
+    ArgonautRobotTest() :
+        m_rpDebugOutput(ArgonautRobot::GetRobotInstance()->m_pDebugOutput)
     {
     }
-    static CmsdRobotTest * GetInstance() { return m_pRobotTestObj; }
+    static ArgonautRobotTest * GetInstance() { return m_pRobotTestObj; }
     static void CreateInstance()
     {
-        m_pRobotTestObj = new CmsdRobotTest();
+        m_pRobotTestObj = new ArgonautRobotTest();
     }
 
-    static CmsdRobotTest * m_pRobotTestObj;
+    static ArgonautRobotTest * m_pRobotTestObj;
     DigitalOutput *& m_rpDebugOutput;
     */
 };
 
 // STATIC MEMBER DATA
-Joystick * CmsdRobotTest::m_pJoystick = nullptr;
+Joystick * ArgonautRobotTest::m_pJoystick = nullptr;
 
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::TestInit
+/// @method ArgonautRobot::TestInit
 ///
 /// The test init method.  This method is called once each time
 /// the robot enters test mode.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::TestInit()
+void ArgonautRobot::TestInit()
 {
     RobotUtils::DisplayMessage("TestInit called.");
 
-    CmsdRobotTest::InitializeCommonPointers();
+    ArgonautRobotTest::InitializeCommonPointers();
 }
 
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::TestPeriodic
+/// @method ArgonautRobot::TestPeriodic
 ///
 /// The test control method.  This method is called
 /// periodically while the robot is in test mode.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::TestPeriodic()
+void ArgonautRobot::TestPeriodic()
 {
     // Log a mode change if one occurred
     CheckAndUpdateRobotMode(ROBOT_MODE_TEST);
 
     // Enable or disable routines for testing
-    CmsdRobotTest::QuickTestCode();
-    //CmsdRobotTest::CtreSpeedControllerTest();
-    //CmsdRobotTest::RevSpeedControllerTest();
-    //CmsdRobotTest::TankDrive();
-    //CmsdRobotTest::SwerveDriveTest();
-    //CmsdRobotTest::PneumaticsTest();
-    //CmsdRobotTest::SuperstructureTest();
-    //CmsdRobotTest::TimeTest();
-    //CmsdRobotTest::ButtonChangeTest();
-    //CmsdRobotTest::AccelerometerTest();
-    //CmsdRobotTest::CandleLedsTest();
-    //CmsdRobotTest::RelayLedsTest();
+    ArgonautRobotTest::QuickTestCode();
+    //ArgonautRobotTest::CtreSpeedControllerTest();
+    //ArgonautRobotTest::RevSpeedControllerTest();
+    //ArgonautRobotTest::TankDrive();
+    //ArgonautRobotTest::SwerveDriveTest();
+    //ArgonautRobotTest::PneumaticsTest();
+    //ArgonautRobotTest::SuperstructureTest();
+    //ArgonautRobotTest::TimeTest();
+    //ArgonautRobotTest::ButtonChangeTest();
+    //ArgonautRobotTest::AccelerometerTest();
+    //ArgonautRobotTest::CandleLedsTest();
+    //ArgonautRobotTest::RelayLedsTest();
 }
 
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::InitializeCommonPointers
+/// @method ArgonautRobotTest::InitializeCommonPointers
 ///
 /// Initializes any common test pointers by creating objects
 /// for them to use.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::InitializeCommonPointers()
+void ArgonautRobotTest::InitializeCommonPointers()
 {
     static bool bPointersInitialized = false;
     if (!bPointersInitialized)
@@ -155,24 +155,24 @@ void CmsdRobotTest::InitializeCommonPointers()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::QuickTestCode
+/// @method ArgonautRobotTest::QuickTestCode
 ///
 /// Test code to try out for rapid prototyping.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::QuickTestCode()
+void ArgonautRobotTest::QuickTestCode()
 {
 }
 
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::SuperstructureTest
+/// @method ArgonautRobotTest::SuperstructureTest
 ///
 /// Test code to try out functionality on the superstructure.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::SuperstructureTest()
+void ArgonautRobotTest::SuperstructureTest()
 {
     static TalonFX * pTalonFx5 = new TalonFX(5);
     static TalonFX * pTalonFx6 = new TalonFX(6);
@@ -222,12 +222,12 @@ void CmsdRobotTest::SuperstructureTest()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::CtreSpeedControllerTest
+/// @method ArgonautRobotTest::CtreSpeedControllerTest
 ///
 /// Test code for CTRE speed controllers.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::CtreSpeedControllerTest()
+void ArgonautRobotTest::CtreSpeedControllerTest()
 {
     static TalonFX * pLeft1 = new TalonFX(1);
     static TalonFX * pLeft2 = new TalonFX(2);
@@ -264,12 +264,12 @@ void CmsdRobotTest::CtreSpeedControllerTest()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::RevSpeedControllerTest
+/// @method ArgonautRobotTest::RevSpeedControllerTest
 ///
 /// Test code for REV speed controllers.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::RevSpeedControllerTest()
+void ArgonautRobotTest::RevSpeedControllerTest()
 {
     static rev::spark::SparkMax * pLeftNeo = new rev::spark::SparkMax(1, rev::spark::SparkMax::MotorType::kBrushless);
     static rev::spark::SparkMax * pRightNeo = new rev::spark::SparkMax(2, rev::spark::SparkMax::MotorType::kBrushless);
@@ -298,54 +298,54 @@ void CmsdRobotTest::RevSpeedControllerTest()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::TankDrive
+/// @method ArgonautRobotTest::TankDrive
 ///
 /// Test code for tank drive of the robot.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::TankDrive()
+void ArgonautRobotTest::TankDrive()
 {
     static TalonFX * pLeftDrive = new TalonFX(1);
     static TalonFX * pRightDrive = new TalonFX(2);
-    pLeftDrive->Set(CMSD_ROBOT_OBJ()->m_pDriveController->GetAxisValue(1) * -1.0);
-    pRightDrive->Set(CMSD_ROBOT_OBJ()->m_pDriveController->GetAxisValue(5) * -1.0);
+    pLeftDrive->Set(ARGONAUT_ROBOT_OBJ()->m_pDriveController->GetAxisValue(1) * -1.0);
+    pRightDrive->Set(ARGONAUT_ROBOT_OBJ()->m_pDriveController->GetAxisValue(5) * -1.0);
 }
 
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::SwerveDriveTest
+/// @method ArgonautRobotTest::SwerveDriveTest
 ///
 /// Test code for swerve drive of the robot.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::SwerveDriveTest()
+void ArgonautRobotTest::SwerveDriveTest()
 {
-    static SwerveDrive * pSwerveDrive = CMSD_ROBOT_OBJ()->m_pSwerveDrive;
+    static SwerveDrive * pSwerveDrive = ARGONAUT_ROBOT_OBJ()->m_pSwerveDrive;
 
     // Tests returning modules to absolute reference angles
-    if (CMSD_ROBOT_OBJ()->m_pDriveController->DetectButtonChange(4))
+    if (ARGONAUT_ROBOT_OBJ()->m_pDriveController->DetectButtonChange(4))
     {
         // Not available yet
-        //CMSD_ROBOT_OBJ()->m_pSwerveDrive->HomeModules();
+        //ARGONAUT_ROBOT_OBJ()->m_pSwerveDrive->HomeModules();
     }
 
     // Dynamically switch between field relative and robot centric
     static bool bFieldRelative = true;
-    if (CMSD_ROBOT_OBJ()->m_pDriveController->DetectButtonChange(5))
+    if (ARGONAUT_ROBOT_OBJ()->m_pDriveController->DetectButtonChange(5))
     {
         bFieldRelative = !bFieldRelative;
     }
 
     // Zero the gryo
-    if (CMSD_ROBOT_OBJ()->m_pDriveController->DetectButtonChange(6))
+    if (ARGONAUT_ROBOT_OBJ()->m_pDriveController->DetectButtonChange(6))
     {
         pSwerveDrive->ZeroGyroYaw();
     }
 
     // Dynamically switch between arcade and GTA drive controls
     static bool bGtaControls = false;
-    if (CMSD_ROBOT_OBJ()->m_pDriveController->DetectButtonChange(10))
+    if (ARGONAUT_ROBOT_OBJ()->m_pDriveController->DetectButtonChange(10))
     {
         bGtaControls = !bGtaControls;
     }
@@ -355,16 +355,16 @@ void CmsdRobotTest::SwerveDriveTest()
     double translationAxis = 0.0;
     if (bGtaControls)
     {
-        double lAxis = CMSD_ROBOT_OBJ()->m_pDriveController->GetAxisValue(2) * -1.0;
-        double rAxis = CMSD_ROBOT_OBJ()->m_pDriveController->GetAxisValue(3);
+        double lAxis = ARGONAUT_ROBOT_OBJ()->m_pDriveController->GetAxisValue(2) * -1.0;
+        double rAxis = ARGONAUT_ROBOT_OBJ()->m_pDriveController->GetAxisValue(3);
         translationAxis = lAxis + rAxis;
     }
     else
     {
-        translationAxis = CMSD_ROBOT_OBJ()->m_pDriveController->GetAxisValue(1) * -1.0;
+        translationAxis = ARGONAUT_ROBOT_OBJ()->m_pDriveController->GetAxisValue(1) * -1.0;
     }
-    double strafeAxis = CMSD_ROBOT_OBJ()->m_pDriveController->GetAxisValue(0) * -1.0;
-    double rotationAxis = CMSD_ROBOT_OBJ()->m_pDriveController->GetAxisValue(4) * -1.0;
+    double strafeAxis = ARGONAUT_ROBOT_OBJ()->m_pDriveController->GetAxisValue(0) * -1.0;
+    double rotationAxis = ARGONAUT_ROBOT_OBJ()->m_pDriveController->GetAxisValue(4) * -1.0;
 
     strafeAxis = RobotUtils::Trim(strafeAxis, 0.10, -0.10);
     translationAxis = RobotUtils::Trim(translationAxis, 0.10, -0.10);
@@ -388,18 +388,18 @@ void CmsdRobotTest::SwerveDriveTest()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::PneumaticsTest
+/// @method ArgonautRobotTest::PneumaticsTest
 ///
 /// Test code for validating pneumatics.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::PneumaticsTest()
+void ArgonautRobotTest::PneumaticsTest()
 {
     // The pneumatics library checks if channels are already in use
     // when creating the object.  The test code either has to pick
     // channels not in use (likely 6/7) or grab a reference to some
     // solenoid object from the actual robot code.
-    //static DoubleSolenoid *& rpSolenoid = CMSD_ROBOT_OBJ()->m_pTalonCoolingSolenoid;
+    //static DoubleSolenoid *& rpSolenoid = ARGONAUT_ROBOT_OBJ()->m_pTalonCoolingSolenoid;
     static DoubleSolenoid * pSolenoid = new DoubleSolenoid(PneumaticsModuleType::CTREPCM, 6, 7);
     
     if (m_pJoystick->GetRawButton(1))
@@ -422,12 +422,12 @@ void CmsdRobotTest::PneumaticsTest()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::TimeTest
+/// @method ArgonautRobotTest::TimeTest
 ///
 /// Test code for manually managing timing (including threads).
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::TimeTest()
+void ArgonautRobotTest::TimeTest()
 {
     // Example code using standard library delays and time tracking
     static std::chrono::time_point<std::chrono::high_resolution_clock> currentTime;
@@ -452,15 +452,15 @@ void CmsdRobotTest::TimeTest()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::ButtonChangeTest
+/// @method ArgonautRobotTest::ButtonChangeTest
 ///
 /// Test code to verify button state change detection works.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::ButtonChangeTest()
+void ArgonautRobotTest::ButtonChangeTest()
 {
     // Sample code for testing the detect trigger change code
-    if (CMSD_ROBOT_OBJ()->m_pDriveController->DetectButtonChange(1, Cmsd::Controller::ButtonStateChanges::BUTTON_RELEASED))
+    if (ARGONAUT_ROBOT_OBJ()->m_pDriveController->DetectButtonChange(1, Argonaut::Controller::ButtonStateChanges::BUTTON_RELEASED))
     {
         RobotUtils::DisplayMessage("Trigger change detected!");
     }
@@ -469,12 +469,12 @@ void CmsdRobotTest::ButtonChangeTest()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::AccelerometerTest
+/// @method ArgonautRobotTest::AccelerometerTest
 ///
 /// Test code to verify the built in accelerometer.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::AccelerometerTest()
+void ArgonautRobotTest::AccelerometerTest()
 {
     // Test code for reading the built in accelerometer
     BuiltInAccelerometer * pAccelerometer = new BuiltInAccelerometer();
@@ -487,26 +487,26 @@ void CmsdRobotTest::AccelerometerTest()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::CandleLedsTest
+/// @method ArgonautRobotTest::CandleLedsTest
 ///
 /// Test code to verify functionality of CANdle controlled RGB
 // LED strips.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::CandleLedsTest()
+void ArgonautRobotTest::CandleLedsTest()
 {
 }
 
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobotTest::RelayLedsTest
+/// @method ArgonautRobotTest::RelayLedsTest
 ///
 /// Test code to verify functionality of relay controlled RGB
 /// LED strips.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobotTest::RelayLedsTest()
+void ArgonautRobotTest::RelayLedsTest()
 {
     enum LedDisplayState
     {

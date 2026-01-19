@@ -1,11 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @file   CmsdRobotAutonomous.cpp
+/// @file   ArgonautRobotAutonomous.cpp
 /// @author David Stalter
 ///
 /// @details
-/// Implementation of autonomous routines for CmsdRobot.
+/// Implementation of autonomous routines for ArgonautRobot.
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 // SYSTEM INCLUDES
@@ -15,22 +15,22 @@
 // (none)
 
 // C++ INCLUDES
-#include "CmsdRobot.hpp"                // for robot class declaration
-#include "CmsdRobotAutonomous.hpp"      // for autonomous declarations
-#include "RobotCamera.hpp"              // for interacting with cameras
+#include "ArgonautRobot.hpp"                // for robot class declaration
+#include "ArgonautRobotAutonomous.hpp"      // for autonomous declarations
+#include "RobotCamera.hpp"                  // for interacting with cameras
 
 // NAMESPACE DATA
-bool CmsdRobotAutonomous::bAutonomousExecutionComplete;
+bool ArgonautRobotAutonomous::bAutonomousExecutionComplete;
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::AutonomousInit
+/// @method ArgonautRobot::AutonomousInit
 ///
 /// The autonomous init method.  This method is called once each
 /// time the robot enters autonomous control.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::AutonomousInit()
+void ArgonautRobot::AutonomousInit()
 {
     RobotUtils::DisplayMessage("AutonomousInit called.");
     
@@ -38,7 +38,7 @@ void CmsdRobot::AutonomousInit()
     InitialStateSetup();
     
     // Indicate the autonomous routine has not executed yet
-    CmsdRobotAutonomous::bAutonomousExecutionComplete = false;
+    ArgonautRobotAutonomous::bAutonomousExecutionComplete = false;
     
     m_pSafetyTimer->Stop();
     m_pSafetyTimer->Reset();
@@ -52,7 +52,7 @@ void CmsdRobot::AutonomousInit()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::AutonomousPeriodic
+/// @method ArgonautRobot::AutonomousPeriodic
 ///
 /// The autonomous control method.  This method is called
 /// periodically while the robot is in autonomous control.
@@ -62,12 +62,12 @@ void CmsdRobot::AutonomousInit()
 /// machine flow.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::AutonomousPeriodic()
+void ArgonautRobot::AutonomousPeriodic()
 {
     // Log a mode change if one occurred
     CheckAndUpdateRobotMode(ROBOT_MODE_AUTONOMOUS);
     
-    if (CmsdRobotAutonomous::bAutonomousExecutionComplete)
+    if (ArgonautRobotAutonomous::bAutonomousExecutionComplete)
     {
         return;
     }
@@ -82,7 +82,7 @@ void CmsdRobot::AutonomousPeriodic()
     std::string selectedAutoRoutineString = m_AutonomousChooser.GetSelected();
     
     // Auto routine 1
-    //if ( CmsdRobotAutonomous::ROUTINE_1 )
+    //if ( ArgonautRobotAutonomous::ROUTINE_1 )
     if (selectedAutoRoutineString == AUTO_ROUTINE_1_STRING)
     {
         RobotUtils::DisplayMessage("Auto routine 1.");
@@ -90,7 +90,7 @@ void CmsdRobot::AutonomousPeriodic()
     }
     
     // Auto routine 2
-    //else if ( CmsdRobotAutonomous::ROUTINE_2 )
+    //else if ( ArgonautRobotAutonomous::ROUTINE_2 )
     else if (selectedAutoRoutineString == AUTO_ROUTINE_2_STRING)
     {
         RobotUtils::DisplayMessage("Auto routine 2.");
@@ -98,7 +98,7 @@ void CmsdRobot::AutonomousPeriodic()
     }
     
     // Auto routine 3
-    //else if ( CmsdRobotAutonomous::ROUTINE_3 )
+    //else if ( ArgonautRobotAutonomous::ROUTINE_3 )
     else if (selectedAutoRoutineString == AUTO_ROUTINE_3_STRING)
     {
         RobotUtils::DisplayMessage("Auto routine 3.");
@@ -107,7 +107,7 @@ void CmsdRobot::AutonomousPeriodic()
 
     /* !!! ONLY ENABLE TEST AUTONOMOUS CODE WHEN TESTING
            SELECT A FUNCTIONING ROUTINE FOR ACTUAL MATCHES !!! */
-    //else if ( CmsdRobotAutonomous::TEST_ENABLED )
+    //else if ( ArgonautRobotAutonomous::TEST_ENABLED )
     else if (selectedAutoRoutineString == AUTO_TEST_ROUTINE_STRING)
     {
         RobotUtils::DisplayMessage("Auto test code.");
@@ -121,7 +121,7 @@ void CmsdRobot::AutonomousPeriodic()
     }
     
     // One shot through autonomous is over, indicate as such.
-    CmsdRobotAutonomous::bAutonomousExecutionComplete = true;
+    ArgonautRobotAutonomous::bAutonomousExecutionComplete = true;
     
     /*
     // Idle until auto is terminated
@@ -135,14 +135,14 @@ void CmsdRobot::AutonomousPeriodic()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::AutonomousCommon
+/// @method ArgonautRobot::AutonomousCommon
 ///
 /// Common autonomous behavior.  It moves away from the alliance
 /// wall and to the fuel loading station.  The variance is
 /// whether it shoots at the start or at the end.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::AutonomousCommon()
+void ArgonautRobot::AutonomousCommon()
 {
 
     if (m_AllianceColor == DriverStation::Alliance::kRed)
@@ -161,12 +161,12 @@ void CmsdRobot::AutonomousCommon()
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::AutonomousCommonRed
+/// @method ArgonautRobot::AutonomousCommonRed
 ///
 /// Common autonomous behavior when on the red alliance.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::AutonomousCommonRed()
+void ArgonautRobot::AutonomousCommonRed()
 {
 }
 
@@ -187,11 +187,11 @@ void CmsdRobot::AutonomousCommonRed()
 
 
 ////////////////////////////////////////////////////////////////
-// @method CmsdRobot::AutonomousCommonBlue
+// @method ArgonautRobot::AutonomousCommonBlue
 ///
 /// Common autonomous behavior when on the blue alliance.
 ///
 ////////////////////////////////////////////////////////////////
-void CmsdRobot::AutonomousCommonBlue()
+void ArgonautRobot::AutonomousCommonBlue()
 {
 }

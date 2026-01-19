@@ -5,7 +5,7 @@
 /// @details
 /// Contains declarations of utility macros/routines for the robot code.
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef ROBOTUTILS_HPP

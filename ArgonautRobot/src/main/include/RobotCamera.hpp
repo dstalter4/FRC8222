@@ -5,7 +5,7 @@
 /// @details
 /// A class designed to support camera functionality on the robot.
 ///
-/// Copyright (c) 2024 CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef ROBOTCAMERA_HPP

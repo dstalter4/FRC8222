@@ -1,16 +1,16 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @file   CmsdRobotAutonomous.hpp
+/// @file   ArgonautRobotAutonomous.hpp
 /// @author David Stalter
 ///
 /// @details
 /// Contains the declarations for the autonomous portions of code ran in an FRC
 /// robot.
 ///
-/// Copyright (c) CMSD
+/// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CMSDROBOTAUTONOMOUS_HPP
-#define CMSDROBOTAUTONOMOUS_HPP
+#ifndef ARGONAUTROBOTAUTONOMOUS_HPP
+#define ARGONAUTROBOTAUTONOMOUS_HPP
 
 // SYSTEM INCLUDES
 // <none>
@@ -19,18 +19,18 @@
 // (none)
 
 // C++ INCLUDES
-#include "CmsdRobot.hpp"                // for inline autonomous function declarations
+#include "ArgonautRobot.hpp"            // for inline autonomous function declarations
 
 using namespace frc;
 
 ////////////////////////////////////////////////////////////////
-/// @namespace CmsdRobotAutonomous
+/// @namespace ArgonautRobotAutonomous
 ///
 /// Namespace that contains robot autonomous variable and
 /// function declarations.
 ///
 ////////////////////////////////////////////////////////////////
-namespace CmsdRobotAutonomous
+namespace ArgonautRobotAutonomous
 {
     // TYPEDEFS
     // (none)
@@ -47,7 +47,7 @@ namespace CmsdRobotAutonomous
     // CONSTS
     
     // Autonomous Mode Constants
-    // @todo: Convert to class and make a friend in CmsdRobot
+    // @todo: Convert to class and make a friend in ArgonautRobot
     
     // Note: Only enable one autonomous routine!
     // Note: Autonomous routines are currently controlled by
@@ -77,14 +77,14 @@ namespace CmsdRobotAutonomous
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::AutonomousDelay
+/// @method ArgonautRobot::AutonomousDelay
 ///
 /// Waits for a specified amount of time in autonomous.  Used
 /// while an operation is ongoing but not yet complete, and
 /// nothing else needs to occur.
 ///
 ////////////////////////////////////////////////////////////////
-inline void CmsdRobot::AutonomousDelay(units::second_t time)
+inline void ArgonautRobot::AutonomousDelay(units::second_t time)
 {
     Wait(time);
 }
@@ -92,13 +92,13 @@ inline void CmsdRobot::AutonomousDelay(units::second_t time)
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::AutonomousSwerveDriveSequence
+/// @method ArgonautRobot::AutonomousSwerveDriveSequence
 ///
 /// Drives during autonomous for a specified amount of time
 /// using swerve drive modules.
 ///
 ////////////////////////////////////////////////////////////////
-inline void CmsdRobot::AutonomousSwerveDriveSequence(RobotSwerveDirections & rSwerveDirections, double translationSpeed, double strafeSpeed, double rotateSpeed, units::second_t time, bool bFieldRelative)
+inline void ArgonautRobot::AutonomousSwerveDriveSequence(RobotSwerveDirections & rSwerveDirections, double translationSpeed, double strafeSpeed, double rotateSpeed, units::second_t time, bool bFieldRelative)
 {
     units::meter_t translation = 0.0_m;
     units::meter_t strafe = 0.0_m;
@@ -164,8 +164,8 @@ inline void CmsdRobot::AutonomousSwerveDriveSequence(RobotSwerveDirections & rSw
     while (duration < time)
     {
         m_pSwerveDrive->SetModuleStates(translation2d, rotateSpeed, bFieldRelative, true);
-        AutonomousDelay(CmsdRobotAutonomous::SWERVE_OP_STEP_TIME_S);
-        duration += CmsdRobotAutonomous::SWERVE_OP_STEP_TIME_S;
+        AutonomousDelay(ArgonautRobotAutonomous::SWERVE_OP_STEP_TIME_S);
+        duration += ArgonautRobotAutonomous::SWERVE_OP_STEP_TIME_S;
     }
 
     // Stop motion
@@ -179,12 +179,12 @@ inline void CmsdRobot::AutonomousSwerveDriveSequence(RobotSwerveDirections & rSw
 
 
 ////////////////////////////////////////////////////////////////
-/// @method CmsdRobot::AutonomousRotateByGyroSequence
+/// @method ArgonautRobot::AutonomousRotateByGyroSequence
 ///
 /// Turns the robot by the gyro.
 ///
 ////////////////////////////////////////////////////////////////
-inline void CmsdRobot::AutonomousRotateByGyroSequence(RobotRotation robotRotation, double rotateDegrees, double rotateSpeed, bool bFieldRelative)
+inline void ArgonautRobot::AutonomousRotateByGyroSequence(RobotRotation robotRotation, double rotateDegrees, double rotateSpeed, bool bFieldRelative)
 {
     double startingGyroAngle = m_pPigeon->GetYaw().GetValueAsDouble();
 
@@ -208,4 +208,4 @@ inline void CmsdRobot::AutonomousRotateByGyroSequence(RobotRotation robotRotatio
 }
 
 
-#endif // CMSDROBOTAUTONOMOUS_HPP
+#endif // ARGONAUTROBOTAUTONOMOUS_HPP
