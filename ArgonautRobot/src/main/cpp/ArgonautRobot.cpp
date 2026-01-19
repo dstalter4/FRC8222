@@ -469,6 +469,11 @@ void ArgonautRobot::SwerveDriveSequence()
         m_pSwerveDrive->HomeModules();
     }
 
+    if (m_pDriveController->DetectButtonChange(LOCK_SWERVE_WHEELS_BUTTON))
+    {
+        m_pSwerveDrive->LockWheels();
+    }
+
     // The GetDriveX() and GetDriveYInput() functions refer to ***controller joystick***
     // x and y axes.  Multiply by -1.0 here to keep the joystick input retrieval code common.
     double translationAxis = RobotUtils::Trim(m_pDriveController->GetDriveYInput() * -1.0, JOYSTICK_TRIM_UPPER_LIMIT, JOYSTICK_TRIM_LOWER_LIMIT);
@@ -528,6 +533,9 @@ void ArgonautRobot::SwerveDriveSequence()
 
     // Update the swerve module states
     m_pSwerveDrive->SetModuleStates(translation, rotationAxis, bFieldRelative, true);
+
+    // Update the odometry
+    m_pSwerveDrive->UpdateOdometry();
 
     // Display some useful information
     m_pSwerveDrive->UpdateSmartDashboard();
