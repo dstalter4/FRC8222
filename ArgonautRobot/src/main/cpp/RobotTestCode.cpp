@@ -326,8 +326,7 @@ void ArgonautRobotTest::SwerveDriveTest()
     // Tests returning modules to absolute reference angles
     if (ARGONAUT_ROBOT_OBJ()->m_pDriveController->DetectButtonChange(4))
     {
-        // Not available yet
-        //ARGONAUT_ROBOT_OBJ()->m_pSwerveDrive->HomeModules();
+        pSwerveDrive->HomeModules();
     }
 
     // Dynamically switch between field relative and robot centric
