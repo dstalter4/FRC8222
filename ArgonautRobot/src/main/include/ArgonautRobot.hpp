@@ -296,7 +296,7 @@ private:
     // Camera
     // Note: Only need to have a thread here and tie it to
     // the RobotCamera class, which handles everything else.
-    //std::thread                     m_CameraThread;
+    std::thread                     m_CameraThread;
     
     // Misc
     RobotMode                       m_RobotMode;                            // Keep track of the current robot state
@@ -323,6 +323,7 @@ private:
     static const int                FIELD_RELATIVE_TOGGLE_BUTTON            = DRIVE_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.LEFT_BUMPER;
     static const int                REZERO_SWERVE_BUTTON                    = DRIVE_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUMPER;
     static const int                LOCK_SWERVE_WHEELS_BUTTON               = DRIVE_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.LEFT_BUTTON;
+    static const int                DRIVE_ALIGN_WITH_CAMERA_BUTTON          = DRIVE_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUTTON;
     
     // Aux inputs
     static const int                ESTOP_BUTTON                            = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.NO_BUTTON;

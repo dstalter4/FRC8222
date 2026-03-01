@@ -20,7 +20,7 @@
 
 // C++ INCLUDES
 #include "ArgonautRobot.hpp"            // for class declaration (and other headers)
-//#include "RobotCamera.hpp"              // for interacting with cameras
+#include "RobotCamera.hpp"              // for interacting with cameras
 #include "RobotUtils.hpp"               // for Trim(), Limit() and DisplayMessage()
 
 // STATIC MEMBER VARIABLES
@@ -50,7 +50,7 @@ ArgonautRobot::ArgonautRobot() :
     m_pMatchModeTimer                   (new Timer()),
     m_pRobotProgramTimer                (new Timer()),
     m_pSafetyTimer                      (new Timer()),
-    //m_CameraThread                      (RobotCamera::LimelightThread),
+    m_CameraThread                      (RobotCamera::LimelightThread),
     m_RobotMode                         (ROBOT_MODE_NOT_SET),
     m_AllianceColor                     (DriverStation::GetAlliance()),
     m_bRioPinsStable                    (false),
@@ -388,12 +388,15 @@ void ArgonautRobot::TeleopPeriodic()
 
     if (Argonaut::Drive::Config::USE_SWERVE_DRIVE)
     {
-        SwerveDriveSequence();
+        if (!m_bCameraAlignInProgress)
+        {
+            SwerveDriveSequence();
+        }
     }
 
     //PneumaticSequence();
     
-    //CameraSequence();
+    CameraSequence();
 
     UpdateSmartDashboard();
 }
@@ -439,6 +442,15 @@ void ArgonautRobot::PneumaticSequence()
 ////////////////////////////////////////////////////////////////
 void ArgonautRobot::CameraSequence()
 {
+    if (m_pDriveController->GetButtonState(DRIVE_ALIGN_WITH_CAMERA_BUTTON))
+    {
+        m_bCameraAlignInProgress = true;
+        RobotCamera::AutonomousCamera::AlignToTargetSwerve();
+    }
+    else
+    {
+        m_bCameraAlignInProgress = false;
+    }
 }
 
 
