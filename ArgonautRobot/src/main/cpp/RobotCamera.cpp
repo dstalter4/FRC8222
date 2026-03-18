@@ -23,6 +23,7 @@
 
 // STATIC MEMBER DATA
 PIDController                                   RobotCamera::m_VisionPid{0.03, 0.00, 0.002};
+PIDController                                   RobotCamera::m_VisionRotatePid{0.03, 0.00, 0.002};
 std::shared_ptr<nt::NetworkTable>               RobotCamera::m_pLimelightNetworkTable;
 RobotCamera::UsbCameraStorage                   RobotCamera::m_UsbCameras;
 RobotCamera::UsbCameraInfo *                    RobotCamera::m_pCurrentUsbCamera;
@@ -184,28 +185,46 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve()
         return;
     }
 
+    //pulling current angle from pigeon, placeholded until I figure out how to pull that from the rio
+    double CurrentAngle = 0;
+
     // reading limelight data from network tables 
     double targetX = m_pLimelightNetworkTable->GetNumber("tx", 0.0);
-    
+
+    //Grabbing active tracked ID
+    int PrimaryTrackedID = m_pLimelightNetworkTable->GetNumber("tid", 0.0);
+
     // Establishing strafe as a calculated error from the target
     double strafe = m_VisionPid.Calculate(targetX);
 
+    //Establishing rotation as a calculated error from the ideal angle
+    double rotation = m_VisionRotatePid.Calculate(CurrentAngle);
+
+    SmartDashboard::PutNumber("Limelight Primary Tag ID", PrimaryTrackedID);
     SmartDashboard::PutNumber("Limelight targetX: ", targetX);
     SmartDashboard::PutNumber("Limelight raw strafe: ", strafe);
 
-    // Clamping strafe outpud
-    strafe = std::clamp(strafe, -0.95, 0.95);
+    // Clamping strafe and rotation output, strafe lowered from 0.95
+    strafe = std::clamp(strafe, -0.25,0.25);
+    rotation = std::clamp(rotation, -0.25, 0.25);
 
-    // Recommended feedforward, this may be removed as well
+    // Recommended feedforward for both rotation and strafe
     if (std::abs(strafe) > 0.01)
     {
         strafe += std::copysign(0.02, strafe);
     }
 
-    SmartDashboard::PutNumber("Limelight strafe: ", strafe);
+    if(std::abs(rotation) > 0.01)
+    {
+        rotation += std::copysign(0.02, rotation);
+    }
 
-    // Drive
+    SmartDashboard::PutNumber("Limelight strafe: ", strafe);
+    SmartDashboard::PutNumber("Limelight rotation: ", rotation);
+
+    // Strafe or rotate
     pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, units::meter_t{strafe}}, 0.0, true, true);
+    pRobotObj->m_pSwerveDrive->SetModuleStates({units::meter_t{rotation}, 0.0_m}, 0.0, true, true);
 
     // Utilize distance to adjust the shooter hood
     // mainly just grabbing distance for now, this will need to be tested in increments and then a ratio or something in place 
@@ -231,6 +250,29 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve()
         pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, 0.0_m}, 0.0, true, true);
     }
     */
+}
+
+
+
+////////////////////////////////////////////////////////////////
+/// @method RobotCamera::GetDistanceFromTarget
+///
+/// This method retrieves the distance of the robot from the
+/// target.
+///
+////////////////////////////////////////////////////////////////
+void RobotCamera::GetDistanceFromTarget()
+{
+    //Logic for this was pulled from here https://docs.limelightvision.io/docs/docs-limelight/tutorials/tutorial-estimating-distance#using-a-fixed-angle-camera
+
+    constexpr const double CAMERA_MOUNTING_ANGLE_DEGREES = 18.0; //also estimated
+    constexpr const double CAMERA_HEIGHT_FROM_GROUND_INCHES = 12.0; //inches, estimated
+    constexpr const double TARGET_HEIGHT_INCHES = 44.25; //Inches from center of april tag 
+    double cameraAngleOffset = m_pLimelightNetworkTable->GetNumber("ty", 0.0); //vertical offset from limelight
+
+    //estimated distance from target based on some trig
+    double currentDistanceFromTarget = (TARGET_HEIGHT_INCHES - CAMERA_HEIGHT_FROM_GROUND_INCHES)/tan((CAMERA_MOUNTING_ANGLE_DEGREES + cameraAngleOffset));
+    (void)currentDistanceFromTarget;
 }
 
 
@@ -333,10 +375,15 @@ void RobotCamera::LimelightThread()
     const uint32_t APRIL_TAG_PRIORITY = (ArgonautRobot::GetRobotInstance()->m_AllianceColor.value() == DriverStation::Alliance::kRed) ? 4U : 7U;
     m_pLimelightNetworkTable->PutNumber("priorityid", APRIL_TAG_PRIORITY);
 
-    // Setting constants for the vision PID controller
+    // Setting constants for the vision strafe controller
     m_VisionPid.SetSetpoint(0.0);                   // target centered
     m_VisionPid.SetTolerance(1.5);                  // tolerance in degrees
     m_VisionPid.EnableContinuousInput(-27.0, 27.0); // Limelight field of view (verify)
+
+    //Setting constants for the vision rotate controller 
+    m_VisionRotatePid.SetSetpoint(0.0);             //set up to rotate straight on, may need altered for a range 
+    m_VisionRotatePid.SetTolerance(5.0);            //Assuming this doesn't need to always be straight on 
+    m_VisionRotatePid.EnableContinuousInput(0,360); //Currently set for 0 to 360
     
     while (true)
     {

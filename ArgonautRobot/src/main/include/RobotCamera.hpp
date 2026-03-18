@@ -116,6 +116,9 @@ public:
     // Toggle between what processed image is shown on the dashboard
     static void ToggleCameraProcessedImage();
     
+    // This is a thing
+    static void GetDistanceFromTarget();
+
     // The vision thread itself
     static void VisionThread();
     
@@ -238,7 +241,8 @@ private:
     };
     
     // Camera related variables
-    static PIDController                        m_VisionPid;                        // PID controller for automated vision targeting
+    static PIDController                        m_VisionPid;                        // PID controller for automated vision targeting, specifically for strafe
+    static PIDController                        m_VisionRotatePid;                  // PID controller for automated vision targeting, rotation
     static std::shared_ptr<nt::NetworkTable>    m_pLimelightNetworkTable;           // Network table for the limelight camera
     static UsbCameraStorage                     m_UsbCameras;                       // Memory for storing the USB camera objects
     static UsbCameraInfo *                      m_pCurrentUsbCamera;                // Pointer to the currently selected USB camera object   
