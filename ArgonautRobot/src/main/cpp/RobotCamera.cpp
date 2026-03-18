@@ -186,7 +186,7 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve()
     }
 
     //pulling current angle from pigeon, placeholded until I figure out how to pull that from the rio
-    double CurrentAngle = 0;
+    double currentAngle = 0.0;
 
     // reading limelight data from network tables 
     double targetX = m_pLimelightNetworkTable->GetNumber("tx", 0.0);
@@ -198,7 +198,7 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve()
     double strafe = m_VisionPid.Calculate(targetX);
 
     //Establishing rotation as a calculated error from the ideal angle
-    double rotation = m_VisionRotatePid.Calculate(CurrentAngle);
+    double rotation = m_VisionRotatePid.Calculate(currentAngle);
 
     SmartDashboard::PutNumber("Limelight Primary Tag ID", PrimaryTrackedID);
     SmartDashboard::PutNumber("Limelight targetX: ", targetX);
@@ -223,8 +223,7 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve()
     SmartDashboard::PutNumber("Limelight rotation: ", rotation);
 
     // Strafe or rotate
-    pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, units::meter_t{strafe}}, 0.0, true, true);
-    pRobotObj->m_pSwerveDrive->SetModuleStates({units::meter_t{rotation}, 0.0_m}, 0.0, true, true);
+    pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, units::meter_t{strafe}}, rotation, true, true);
 
     // Utilize distance to adjust the shooter hood
     // mainly just grabbing distance for now, this will need to be tested in increments and then a ratio or something in place 

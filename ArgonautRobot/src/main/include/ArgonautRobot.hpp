@@ -293,8 +293,8 @@ private:
     Compressor *                    m_pCompressor;                          // Object to get info about the compressor
     
     // Encoders
-    DutyCycleEncoder *              m_pHoodEncoder;                         //Rev throughbore encoder for the shooter hood movement
-    DutyCycleEncoder *              m_pIntakePivotEncoder;                  //Rev throughbore encoder for the intake pivot
+    CANcoder * m_pHoodCanCoder;
+    CANcoder * m_pIntakePivotCanCoder;
     
     // Timers
     Timer *                         m_pMatchModeTimer;                      // Times how long a particular mode (autonomous, teleop) is running
@@ -340,23 +340,26 @@ private:
     // Copilot Inputs
     static const int                INTAKE_BUTTON                           = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUTTON;
     static const int                OUTTAKE_BUTTON                          = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.DOWN_BUTTON;
-    static const int                INTAKE_PIVOT_UP_DOWN_BUTTON             = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUMPER;
-    static const int                SHOOT_BUTTON                            = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.LEFT_BUMPER;
+    static const int                INTAKE_PIVOT_UP_BUTTON                  = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUMPER;
+    static const int                INTAKE_PIVOT_DOWN_BUTTON                = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.LEFT_BUMPER;
+    static const int                SHOOT_AXIS                              = AUX_CONTROLLER_MAPPINGS->AXIS_MAPPINGS.LEFT_TRIGGER;
     static const int                ESTOP_BUTTON                            = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.NO_BUTTON;
 
     // CAN Signals
     // Note: Remember to check the CAN IDs in use in SwerveDrive.hpp.
     // Superstructure uses IDs starting at 21
     //These are subject to change as of writing the skeleton code
-    static const unsigned            SHOOTER_HOOD_CAN_ID                          = 27;
-    static const unsigned            SHOOTER_FEED_CAN_ID                          = 28;
-    static const unsigned            INTAKE_CAN_ID                                = 29;
-    static const unsigned            INTAKE_PIVOT_CAN_ID                          = 30;
-    static const unsigned            HOPPER_FEED_CAN_ID                           = 31;
-    static const unsigned            SHOOTER_MOTORS_START_CAN_ID                  = 32;
+    static const unsigned           SHOOTER_HOOD_CAN_ID                     = 27;
+    static const unsigned           SHOOTER_FEED_CAN_ID                     = 28;
+    static const unsigned           INTAKE_CAN_ID                           = 29;
+    static const unsigned           INTAKE_PIVOT_CAN_ID                     = 30;
+    static const unsigned           HOPPER_FEED_CAN_ID                      = 31;
     //left shooter can id: 32
     //center shooter can id: 33
     //right shooter can id: 34
+    static const unsigned           SHOOTER_MOTORS_START_CAN_ID             = 32;
+    static const unsigned           HOOD_CANCODER_CAN_ID                    = 35;
+    static const unsigned           INTAKE_PIVOT_CANCODER_CAN_ID            = 36;
 
     // CANivore Signals
     // Note: IDs 21-24 are used by the CANcoders (see the
@@ -371,8 +374,6 @@ private:
     // (none)
     
     // Digital I/O Signals
-    static const int                INTAKE_PIVOT_ENCODER_DIO_CHANNEL        = 0;
-    static const int                HOOD_ENCODER_DIO_CHANNEL                = 1;
     static const int                DEBUG_OUTPUT_DIO_CHANNEL                = 7;
     
     // Analog I/O Signals
@@ -392,11 +393,10 @@ private:
     static constexpr const units::angle::degree_t HOOD_TARGET_POSITION_DEGREES          = 0_deg;
     static constexpr const units::angle::degree_t HOOD_STARTING_ENCODER_VALUE           = 0_deg;
 
-    static constexpr const double INTAKE_PIECE_MOTOR_SPEED                              = 0.0;
-    static constexpr const double OUTTAKE_PIECE_MOTOR_SPEED                             = 0.0;
-    static constexpr const double INTAKE_PIVOT_MOTOR_SPEED                              = 0.0;
-    static constexpr const double HOOD_MOTOR_SPEED                                      = 0.0;
-    static constexpr const double SHOOTER_SPEED                                         = 0.0;
+    static constexpr const double INTAKE_PIECE_MOTOR_SPEED                              = -1.0;
+    static constexpr const double OUTTAKE_PIECE_MOTOR_SPEED                             = 1.0;
+    static constexpr const double HOOD_MOTOR_SPEED                                      = 0.10;
+    static constexpr const double SHOOTER_SPEED                                         = 0.60;
     
     // Misc
     const std::string               AUTO_NO_ROUTINE_STRING                  = "No autonomous routine";

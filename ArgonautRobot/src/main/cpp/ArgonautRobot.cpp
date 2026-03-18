@@ -60,8 +60,8 @@ ArgonautRobot::ArgonautRobot() :
     m_pCompressor                       (new Compressor(PneumaticsModuleType::CTREPCM)),
 
     //encoder initialization
-    m_pHoodEncoder                      (new DutyCycleEncoder(HOOD_ENCODER_DIO_CHANNEL)),
-    m_pIntakePivotEncoder               (new DutyCycleEncoder(INTAKE_PIVOT_ENCODER_DIO_CHANNEL)),
+    m_pHoodCanCoder                     (new CANcoder(HOOD_CANCODER_CAN_ID)),
+    m_pIntakePivotCanCoder              (new CANcoder(INTAKE_PIVOT_CANCODER_CAN_ID)),
    
     m_pMatchModeTimer                   (new Timer()),
     m_pRobotProgramTimer                (new Timer()),
@@ -91,8 +91,6 @@ ArgonautRobot::ArgonautRobot() :
     RobotUtils::DisplayFormattedMessage("The drive forward axis is: %d\n", Argonaut::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.RIGHT_TRIGGER);
     RobotUtils::DisplayFormattedMessage("The drive reverse axis is: %d\n", Argonaut::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.LEFT_TRIGGER);
     RobotUtils::DisplayFormattedMessage("The drive left/right axis is: %d\n", Argonaut::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.LEFT_X_AXIS);
-
-    ConfigureMotorControllers();
 
     CANdleConfiguration candleConfig;
     candleConfig.LED.StripType = StripTypeValue::RGBW;
@@ -175,6 +173,7 @@ void ArgonautRobot::RobotPeriodic()
 ////////////////////////////////////////////////////////////////
 void ArgonautRobot::CheckIfRioPinsAreStable()
 {
+/*
     // This is the logic to wait to take PWM based sensor readings until the RIO is ready.
     // The behavior of the RIO is that it measures how many microseconds the signal is high
     // every second.  This requires waiting to get stable readings.
@@ -256,6 +255,7 @@ void ArgonautRobot::CheckIfRioPinsAreStable()
         // m_bRioPinsStable exists for the life of the program.  Once we have a stable
         // reading acquired, we don't need to do it again until the robot program restarts.
     }
+*/
 }
 
 
@@ -336,7 +336,7 @@ void ArgonautRobot::ConfigureMotorControllers()
     // Configure a single motor
     //(void)m_pMotor->m_MotorConfiguration.MotorOutput.WithNeutralMode(NeutralModeValue::Brake);
     //(void)m_pMotor->m_MotorConfiguration.Feedback.WithSensorToMechanismRatio(135.0 / 1.0);
-    //(void)m_pMotor->m_MotorConfiguration.Slot0.WithKP(50.0).WithKI(0.0).WithKD(2.0);
+    //(void)m_pMotor->m_MotorConfiguration.Slot0.WithKP(18.0).WithKI(0.0).WithKD(0.1);
     //(void)m_pMotor->m_pTalonFx->GetConfigurator().SetPosition(0.0_tr);
     //m_pMotor->ApplyConfiguration();
 
@@ -355,10 +355,23 @@ void ArgonautRobot::ConfigureMotorControllers()
     //Configuration for intake motor (no changes from default right now)
     //m_pIntake->ApplyConfiguration();
 
-    //Configuration for intake pivot motor 
-    (void)m_pIntakePivot->m_MotorConfiguration.Slot0.WithKP(0.0).WithKI(0.0).WithKD(0.0);
-    (void)m_pIntakePivot->m_pTalonFx->GetConfigurator().SetPosition(INTAKE_STARTING_ENCODER_VALUE);
+    // Full down: 0.529297 (190.54692_deg), full up: 0.236572 (85.16592_deg)
+    constexpr const units::angle::degree_t INTAKE_STARTING_ANGLE_CANCODER_REF = 90.0_deg;
+    units::angle::degree_t intakeCanCoderDegrees = m_pIntakePivotCanCoder->GetAbsolutePosition().GetValue();
+    units::angle::degree_t intakeAngleDelta = intakeCanCoderDegrees - INTAKE_STARTING_ANGLE_CANCODER_REF;
+    SmartDashboard::PutNumber("Intake delta", intakeAngleDelta.value());
+
+    // If delta is positive, we are below the expected starting point
+    // If delta is negative, we are above the expected starting point
+
+    units::angle::turn_t intakeSetPositionTurns = intakeAngleDelta;
+    (void)m_pIntakePivot->m_pTalonFx->GetConfigurator().SetPosition(intakeSetPositionTurns);
+
+    //Configuration for intake pivot motor
+    (void)m_pIntakePivot->m_MotorConfiguration.Feedback.WithSensorToMechanismRatio(39.6 / 1.0);
+    (void)m_pIntakePivot->m_MotorConfiguration.Slot0.WithKP(18.0).WithKI(0.0).WithKD(0.1);
     (void)m_pIntakePivot->m_MotorConfiguration.MotorOutput.WithNeutralMode(NeutralModeValue::Brake);
+    (void)m_pIntakePivot->m_MotorConfiguration.MotorOutput.WithInverted(InvertedValue::Clockwise_Positive);
     m_pIntakePivot->ApplyConfiguration();
 
     //Configuration for hopper feed motor (no changes from default right now)
@@ -379,6 +392,8 @@ void ArgonautRobot::InitialStateSetup()
 {
     // First reset any member data
     ResetMemberData();
+
+    ConfigureMotorControllers();
 
     // Stop/clear any timers, just in case
     // @todo: Make this a dedicated function.
@@ -463,6 +478,9 @@ void ArgonautRobot::TeleopPeriodic()
         }
     }
 
+    IntakeSequence();
+    ShooterSequence();
+
     //PneumaticSequence();
     
     CameraSequence();
@@ -531,26 +549,33 @@ void ArgonautRobot::IntakeSequence()
     static bool bIntakeUp = true;
 
     //pivoting intake per the throughbore encoder
-    if (m_pAuxController->DetectButtonChange(INTAKE_PIVOT_UP_DOWN_BUTTON))
+    if (m_pAuxController->DetectButtonChange(INTAKE_PIVOT_UP_BUTTON))
     {
-        bIntakeUp = !bIntakeUp;
+        bIntakeUp = true;
 
-        //intake up
-        if (bIntakeUp)
-        {
-            //set intake motor to reference angle for up
-        }
-        else
-        {
-            //set intake motor to reference angle for down
-        }
+        //set intake motor to reference angle for up
+        (void)m_pIntakePivot->SetPositionVoltage(0.0);
+    }
+    else if (m_pAuxController->DetectButtonChange(INTAKE_PIVOT_DOWN_BUTTON))
+    {
+        bIntakeUp = false;
+
+        //set intake motor to reference angle for down
+        (void)m_pIntakePivot->SetPositionVoltage(90.0);
+    }
+    else
+    {
     }
 
     //units::angle::degree_t pivotAngleDegrees = m_pIntakePivot->m_pTalonFx->GetPosition().GetValue();
     //add indicator on the dashboard for the current intake pivot position
 
     //Visual indicator for position of the intake
+    units::angle::degree_t intakeCanCoderDegrees = m_pIntakePivotCanCoder->GetAbsolutePosition().GetValue();
+    units::angle::degree_t intakeFxDegrees = m_pIntakePivot->m_pTalonFx->GetPosition().GetValue();
     SmartDashboard::PutBoolean("Intake Up?", bIntakeUp);
+    SmartDashboard::PutNumber("Intake CANcoder", intakeCanCoderDegrees.value());
+    SmartDashboard::PutNumber("Intake FX", intakeFxDegrees.value());
 }
 
 
@@ -573,12 +598,24 @@ void ArgonautRobot::ShooterSequence()
     //static ShootingState shootingState = SHOOTER_IDLE;
 
     //Getting distance from the robotcamera thingy
-    RobotCamera::GetDistanceFromTarget();
+    //RobotCamera::GetDistanceFromTarget();
 
     //State machine with controls for shooter spin up tied to both the camera align and the copilot shooter spinup
     //shooting speed and hood angle to be tied into the distance determined by the camera 
     //shooting may be done from the neutral area, where vision will not be used an the hood/shooter speed can be set
     //Due to the intake/hopper design, the intake will need to be actuated after x amount of time to ensure the balls can reach the hopper feed
+    if (m_pAuxController->GetAxisValue(SHOOT_AXIS) > AXIS_INPUT_DEAD_BAND)
+    {
+        m_pHopperFeed->SetDutyCycle(-0.80);
+        m_pShooterFeed->SetDutyCycle(-0.80);
+        m_pShooterMotors->Set(SHOOTER_SPEED);
+    }
+    else
+    {
+        m_pHopperFeed->SetDutyCycle(0.0);
+        m_pShooterFeed->SetDutyCycle(0.0);
+        m_pShooterMotors->Set(0.0);
+    }
 }
 
 
