@@ -42,15 +42,35 @@ ArgonautRobot::ArgonautRobot() :
     m_CanivoreBus                       (CANIVORE_CAN_BUS_NAME),
     m_pPigeon                           (new Pigeon2(PIGEON_CAN_ID, m_CanivoreBus)),
     m_pSwerveDrive                      (new SwerveDrive(m_pPigeon, GetCanBusReferenceLambda)),
+
+    //motor initialization          
+    m_pShooterHood                      (new TalonFxMotorController(SHOOTER_HOOD_CAN_ID)),
+    m_pShooterFeed                      (new TalonFxMotorController(SHOOTER_FEED_CAN_ID)),
+    m_pIntake                           (new TalonFxMotorController(INTAKE_CAN_ID)),
+    m_pIntakePivot                      (new TalonFxMotorController(INTAKE_PIVOT_CAN_ID)),
+    m_pHopperFeed                       (new TalonFxMotorController(HOPPER_FEED_CAN_ID)),
+
+    //motor group for all three shooting motors, this is intentionally set to coast due to the flywheels
+    m_pShooterMotors                    (new TalonMotorGroup<TalonFX>("Shooter Motors", THREE_MOTORS, SHOOTER_MOTORS_START_CAN_ID, MotorGroupControlMode::FOLLOW, NeutralModeValue::Coast, false)),
+    
     m_pCandle                           (new CANdle(CANDLE_CAN_ID, m_CanivoreBus)),
     m_LedStripSolidColor                (0, (NUMBER_OF_LEDS - 1)),
     m_RainbowAnimation                  (0, (NUMBER_OF_LEDS - 1)),
     m_pDebugOutput                      (new DigitalOutput(DEBUG_OUTPUT_DIO_CHANNEL)),
     m_pCompressor                       (new Compressor(PneumaticsModuleType::CTREPCM)),
+
+    //encoder initialization
+    m_pHoodEncoder                      (new DutyCycleEncoder(HOOD_ENCODER_DIO_CHANNEL)),
+    m_pIntakePivotEncoder               (new DutyCycleEncoder(INTAKE_PIVOT_ENCODER_DIO_CHANNEL)),
+   
     m_pMatchModeTimer                   (new Timer()),
     m_pRobotProgramTimer                (new Timer()),
     m_pSafetyTimer                      (new Timer()),
     m_CameraThread                      (RobotCamera::LimelightThread),
+    m_IntakePivotAngle                  (0.0_deg),
+    m_HoodAngle                         (0.0_deg),
+    m_IntakePivotTarget                 (0.0_deg),
+    m_HoodTarget                        (0.0_deg),
     m_RobotMode                         (ROBOT_MODE_NOT_SET),
     m_AllianceColor                     (DriverStation::GetAlliance()),
     m_bRioPinsStable                    (false),
@@ -174,14 +194,13 @@ void ArgonautRobot::CheckIfRioPinsAreStable()
         static constexpr const units::time::second_t RIO_DUTY_CYCLE_ENCODER_STARTUP_DELAY = 2.0_s;
         if ((currentTimeStamp - enabledTimeStamp) > RIO_DUTY_CYCLE_ENCODER_STARTUP_DELAY)
         {
-            // Example encoder configuration algorithm
-
-            //double encoderValue = m_pEncoder->Get();
-            //units::angle::degree_t encoderValueDegrees(encoderValue * ANGLE_360_DEGREES);
-
+            // Intake pivor encoder configuration algorithm
+            double encoderValue = m_pIntakePivotEncoder->Get();
+            units::angle::degree_t encoderValueDegrees(encoderValue * ANGLE_360_DEGREES);
+          
             // This is the delta between the current mechanism position and the desired starting position (or zero point)
-            //units::angle::degree_t startingOffsetDegrees = encoderValueDegrees - STARTING_POSITION_ENCODER_VALUE;
-            //std::printf("startingOffsetDegrees (start): %f\n", startingOffsetDegrees.value());
+            units::angle::degree_t startingOffsetDegrees = encoderValueDegrees - INTAKE_STARTING_POSITION_DEGREES;
+            std::printf("startingOffsetDegrees (start): %f\n", startingOffsetDegrees.value());
 
             // If the starting offset is negative, we crossed over the absolute encoder boundary
             // We give a tolerance of five degrees in case the mechanism is near where we want to start
@@ -195,10 +214,36 @@ void ArgonautRobot::CheckIfRioPinsAreStable()
             //}
 
             // At this point we have the angle we want relative to zero
-            //(void)m_pMotor->m_pTalonFx->GetConfigurator().SetPosition(startingOffsetDegrees);
-            //std::printf("encoderValue: %f\n", encoderValue);
-            //std::printf("encoderValueDegrees: %f\n", encoderValueDegrees.value());
-            //std::printf("startingOffsetDegrees (final): %f\n", startingOffsetDegrees.value());
+            (void)m_pIntakePivot->m_pTalonFx->GetConfigurator().SetPosition(startingOffsetDegrees);
+            std::printf("encoderValue: %f\n", encoderValue);
+            std::printf("encoderValueDegrees: %f\n", encoderValueDegrees.value());
+            std::printf("startingOffsetDegrees (final): %f\n", startingOffsetDegrees.value());
+
+             // Hood encoder configuration algorithm
+
+            encoderValue = m_pHoodEncoder->Get();
+            encoderValueDegrees = units::angle::degree_t(encoderValue * ANGLE_360_DEGREES);
+          
+            // This is the delta between the current mechanism position and the desired starting position (or zero point)
+            startingOffsetDegrees = encoderValueDegrees - HOOD_STARTING_POSITION_DEGREES;
+            std::printf("startingOffsetDegrees (start): %f\n", startingOffsetDegrees.value());
+
+            // If the starting offset is negative, we crossed over the absolute encoder boundary
+            // We give a tolerance of five degrees in case the mechanism is near where we want to start
+            // @todo: Does this need to check for very small readings below zero?
+            // @todo: Boundary conditions here will be difficult
+            //if (startingOffsetDegrees < ENCODER_BOUNDARY_TOLERANCE_DEGREES)
+            //{
+                // the 0/1 boundary is 360, so subtract the starting position to see how many degrees were up to that point
+                // Add in the absolute value of the overage, which was negative
+                //startingOffsetDegrees = (units::angle::degree_t(ANGLE_360_DEGREES) - STARTING_POSITION_ENCODER_VALUE) + encoderValueDegrees;
+            //}
+
+            // At this point we have the angle we want relative to zero
+            (void)m_pShooterHood->m_pTalonFx->GetConfigurator().SetPosition(startingOffsetDegrees);
+            std::printf("encoderValue: %f\n", encoderValue);
+            std::printf("encoderValueDegrees: %f\n", encoderValueDegrees.value());
+            std::printf("startingOffsetDegrees (final): %f\n", startingOffsetDegrees.value());
 
             m_bRioPinsStable = true;
         }
@@ -294,6 +339,30 @@ void ArgonautRobot::ConfigureMotorControllers()
     //(void)m_pMotor->m_MotorConfiguration.Slot0.WithKP(50.0).WithKI(0.0).WithKD(2.0);
     //(void)m_pMotor->m_pTalonFx->GetConfigurator().SetPosition(0.0_tr);
     //m_pMotor->ApplyConfiguration();
+
+    //Configuration for Shooter motors x3 (no changes from default right now)
+    //(void)m_pShooterMotors->ApplyConfiguration(SHOOTER_MOTORS_START_CAN_ID);
+
+    //Configuration for shooter hood motor
+    (void)m_pShooterHood->m_MotorConfiguration.Slot1.WithKP(0.0).WithKI(0.0).WithKD(0.0);
+    (void)m_pShooterHood->m_pTalonFx->GetConfigurator().SetPosition(HOOD_STARTING_POSITION_DEGREES);
+    (void)m_pShooterHood->m_MotorConfiguration.MotorOutput.WithNeutralMode(NeutralModeValue::Brake);
+    m_pShooterHood->ApplyConfiguration();
+
+    //Configuration for shooter feed motor (no changes from default right now)
+    //m_pShooterFeed->ApplyConfiguration();
+
+    //Configuration for intake motor (no changes from default right now)
+    //m_pIntake->ApplyConfiguration();
+
+    //Configuration for intake pivot motor 
+    (void)m_pIntakePivot->m_MotorConfiguration.Slot0.WithKP(0.0).WithKI(0.0).WithKD(0.0);
+    (void)m_pIntakePivot->m_pTalonFx->GetConfigurator().SetPosition(INTAKE_STARTING_ENCODER_VALUE);
+    (void)m_pIntakePivot->m_MotorConfiguration.MotorOutput.WithNeutralMode(NeutralModeValue::Brake);
+    m_pIntakePivot->ApplyConfiguration();
+
+    //Configuration for hopper feed motor (no changes from default right now)
+    //m_pHopperFeed->ApplyConfiguration();
 }
 
 
@@ -429,6 +498,87 @@ void ArgonautRobot::PneumaticSequence()
 {
     // @todo: Monitor other compressor API data?
     SmartDashboard::PutBoolean("Compressor status", m_pCompressor->IsEnabled());
+}
+
+
+
+//////////////////////////////////////////////////////////////////
+///@method ArgonautRobot::IntakeSequence
+///
+///This method handles all intake related behavior. This includes
+///the intake rollers and movement of the physical intake via throughbore encoder
+///The intake and rollers need to be operated separately. If the hopper is full, the intake has to be down
+///Did I want these tied together? Yes. Can beggars be choosers? No :)
+///
+/////////////////////////////////////////////////////////////////
+void ArgonautRobot::IntakeSequence()
+{
+    //Turning the motors on and off for intake/outtake
+    if (m_pAuxController->GetButtonState(INTAKE_BUTTON)) //intake fuel
+    {
+        m_pIntake->SetDutyCycle(INTAKE_PIECE_MOTOR_SPEED); 
+    }
+    else if (m_pAuxController->GetButtonState(OUTTAKE_BUTTON)) //outtake fuel
+    {
+        m_pIntake->SetDutyCycle(OUTTAKE_PIECE_MOTOR_SPEED);
+    }
+    else
+    {
+        m_pIntake->SetDutyCycle(0.0);
+    }
+
+    //establishing variable for intake position on dashboard
+    static bool bIntakeUp = true;
+
+    //pivoting intake per the throughbore encoder
+    if (m_pAuxController->DetectButtonChange(INTAKE_PIVOT_UP_DOWN_BUTTON))
+    {
+        bIntakeUp = !bIntakeUp;
+
+        //intake up
+        if (bIntakeUp)
+        {
+            //set intake motor to reference angle for up
+        }
+        else
+        {
+            //set intake motor to reference angle for down
+        }
+    }
+
+    //units::angle::degree_t pivotAngleDegrees = m_pIntakePivot->m_pTalonFx->GetPosition().GetValue();
+    //add indicator on the dashboard for the current intake pivot position
+
+    //Visual indicator for position of the intake
+    SmartDashboard::PutBoolean("Intake Up?", bIntakeUp);
+}
+
+
+
+////////////////////////////////////////////////////////////////
+///@method ArgonautRobot
+///
+///This method handles any shooting related behavior. This includes
+///shooter spin up, operation of the hopper and shooter feeder.     
+///
+////////////////////////////////////////////////////////////////
+void ArgonautRobot::ShooterSequence()
+{
+    enum ShootingState : uint32_t
+    {
+        SHOOTER_IDLE,
+        SHOOTER_SPIN_UP,
+        FEEDING_SHOOTER
+    };
+    //static ShootingState shootingState = SHOOTER_IDLE;
+
+    //Getting distance from the robotcamera thingy
+    RobotCamera::GetDistanceFromTarget();
+
+    //State machine with controls for shooter spin up tied to both the camera align and the copilot shooter spinup
+    //shooting speed and hood angle to be tied into the distance determined by the camera 
+    //shooting may be done from the neutral area, where vision will not be used an the hood/shooter speed can be set
+    //Due to the intake/hopper design, the intake will need to be actuated after x amount of time to ensure the balls can reach the hopper feed
 }
 
 

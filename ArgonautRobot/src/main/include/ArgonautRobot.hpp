@@ -222,7 +222,7 @@ private:
 
     // Main sequence for controlling pneumatics
     void PneumaticSequence();
-    
+
     // Main sequence for vision processing
     void CameraSequence();
 
@@ -230,7 +230,9 @@ private:
     inline void SetLedsToAllianceColor();
 
     // Superstructure sequences
-    // (none)
+    void IntakeSequence();          //deals with piece manipulation, intake configuration
+    void ShooterSequence();         //anything that has to deal with the mechanical operation of the shooter
+    void WaitForSensorConfig();     //ensuring the sensors have time to stabilize prior to operation 
     
     // MEMBER VARIABLES
     
@@ -268,7 +270,12 @@ private:
     SwerveDrive *                   m_pSwerveDrive;                         // Swerve drive control
     
     // Motors
-    // (none)
+    TalonFxMotorController *        m_pShooterHood;                         //Controls the shooter hood
+    TalonFxMotorController *        m_pShooterFeed;                         //Feeds from HopperFeed to shooter
+    TalonFxMotorController *        m_pIntake;                              //Controls the intake motor
+    TalonFxMotorController *        m_pIntakePivot;                         //Pivots the intake 
+    TalonFxMotorController *        m_pHopperFeed;                          //Feeds from the hopper to the shooter
+    TalonMotorGroup<TalonFX> *      m_pShooterMotors;                       //Controls the 3 motors for shooting
 
     // LEDs
     CANdle *                        m_pCandle;                              // Controls an RGB LED strip
@@ -286,7 +293,8 @@ private:
     Compressor *                    m_pCompressor;                          // Object to get info about the compressor
     
     // Encoders
-    // (none)
+    DutyCycleEncoder *              m_pHoodEncoder;                         //Rev throughbore encoder for the shooter hood movement
+    DutyCycleEncoder *              m_pIntakePivotEncoder;                  //Rev throughbore encoder for the intake pivot
     
     // Timers
     Timer *                         m_pMatchModeTimer;                      // Times how long a particular mode (autonomous, teleop) is running
@@ -299,6 +307,10 @@ private:
     std::thread                     m_CameraThread;
     
     // Misc
+    units::angle::degree_t          m_IntakePivotAngle;                     //current reading of the intake pivot
+    units::angle::degree_t          m_HoodAngle;                            //current reading of the hood angle 
+    units::angle::degree_t          m_IntakePivotTarget;                    //target angle of the intake 
+    units::angle::degree_t          m_HoodTarget;                           //target angle of the hood
     RobotMode                       m_RobotMode;                            // Keep track of the current robot state
     std::optional
     <DriverStation::Alliance>       m_AllianceColor;                        // Color reported by driver station during a match
@@ -323,14 +335,28 @@ private:
     static const int                FIELD_RELATIVE_TOGGLE_BUTTON            = DRIVE_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.LEFT_BUMPER;
     static const int                REZERO_SWERVE_BUTTON                    = DRIVE_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUMPER;
     static const int                LOCK_SWERVE_WHEELS_BUTTON               = DRIVE_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.LEFT_BUTTON;
-    static const int                DRIVE_ALIGN_WITH_CAMERA_BUTTON          = DRIVE_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUTTON;
+    static const int                DRIVE_ALIGN_WITH_CAMERA_BUTTON          = DRIVE_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.DOWN_BUTTON;
     
-    // Aux inputs
+    // Copilot Inputs
+    static const int                INTAKE_BUTTON                           = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUTTON;
+    static const int                OUTTAKE_BUTTON                          = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.DOWN_BUTTON;
+    static const int                INTAKE_PIVOT_UP_DOWN_BUTTON             = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUMPER;
+    static const int                SHOOT_BUTTON                            = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.LEFT_BUMPER;
     static const int                ESTOP_BUTTON                            = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.NO_BUTTON;
 
     // CAN Signals
     // Note: Remember to check the CAN IDs in use in SwerveDrive.hpp.
     // Superstructure uses IDs starting at 21
+    //These are subject to change as of writing the skeleton code
+    static const unsigned            SHOOTER_HOOD_CAN_ID                          = 27;
+    static const unsigned            SHOOTER_FEED_CAN_ID                          = 28;
+    static const unsigned            INTAKE_CAN_ID                                = 29;
+    static const unsigned            INTAKE_PIVOT_CAN_ID                          = 30;
+    static const unsigned            HOPPER_FEED_CAN_ID                           = 31;
+    static const unsigned            SHOOTER_MOTORS_START_CAN_ID                  = 32;
+    //left shooter can id: 32
+    //center shooter can id: 33
+    //right shooter can id: 34
 
     // CANivore Signals
     // Note: IDs 21-24 are used by the CANcoders (see the
@@ -345,6 +371,8 @@ private:
     // (none)
     
     // Digital I/O Signals
+    static const int                INTAKE_PIVOT_ENCODER_DIO_CHANNEL        = 0;
+    static const int                HOOD_ENCODER_DIO_CHANNEL                = 1;
     static const int                DEBUG_OUTPUT_DIO_CHANNEL                = 7;
     
     // Analog I/O Signals
@@ -357,7 +385,18 @@ private:
     // (none)
 
     // Motor speeds and angles
-    // (none)
+    static constexpr const units::angle::degree_t INTAKE_STARTING_POSITION_DEGREES      = 0_deg;
+    static constexpr const units::angle::degree_t INTAKE_DOWN_POSITION_DEGREES          = 0_deg;
+    static constexpr const units::angle::degree_t INTAKE_STARTING_ENCODER_VALUE         = 0_deg;
+    static constexpr const units::angle::degree_t HOOD_STARTING_POSITION_DEGREES        = 0_deg;
+    static constexpr const units::angle::degree_t HOOD_TARGET_POSITION_DEGREES          = 0_deg;
+    static constexpr const units::angle::degree_t HOOD_STARTING_ENCODER_VALUE           = 0_deg;
+
+    static constexpr const double INTAKE_PIECE_MOTOR_SPEED                              = 0.0;
+    static constexpr const double OUTTAKE_PIECE_MOTOR_SPEED                             = 0.0;
+    static constexpr const double INTAKE_PIVOT_MOTOR_SPEED                              = 0.0;
+    static constexpr const double HOOD_MOTOR_SPEED                                      = 0.0;
+    static constexpr const double SHOOTER_SPEED                                         = 0.0;
     
     // Misc
     const std::string               AUTO_NO_ROUTINE_STRING                  = "No autonomous routine";
@@ -375,6 +414,7 @@ private:
     static const int                SCALE_TO_PERCENT                        = 100;
     static const unsigned           SINGLE_MOTOR                            = 1;
     static const unsigned           TWO_MOTORS                              = 2;
+    static const unsigned           THREE_MOTORS                            = 3;
     static const unsigned           NUMBER_OF_LEDS                          = 8;
     static const char               NULL_CHARACTER                          = '\0';
 
