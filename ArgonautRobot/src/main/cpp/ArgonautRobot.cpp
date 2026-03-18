@@ -343,17 +343,48 @@ void ArgonautRobot::ConfigureMotorControllers()
     //Configuration for Shooter motors x3 (no changes from default right now)
     //(void)m_pShooterMotors->ApplyConfiguration(SHOOTER_MOTORS_START_CAN_ID);
 
-    //Configuration for shooter hood motor
-    (void)m_pShooterHood->m_MotorConfiguration.Slot1.WithKP(0.0).WithKI(0.0).WithKD(0.0);
-    (void)m_pShooterHood->m_pTalonFx->GetConfigurator().SetPosition(HOOD_STARTING_POSITION_DEGREES);
-    (void)m_pShooterHood->m_MotorConfiguration.MotorOutput.WithNeutralMode(NeutralModeValue::Brake);
-    m_pShooterHood->ApplyConfiguration();
-
     //Configuration for shooter feed motor (no changes from default right now)
     //m_pShooterFeed->ApplyConfiguration();
 
     //Configuration for intake motor (no changes from default right now)
     //m_pIntake->ApplyConfiguration();
+
+    //Configuration for hopper feed motor (no changes from default right now)
+    //m_pHopperFeed->ApplyConfiguration();
+
+
+
+    //Configuration for shooter hood motor
+    (void)m_pShooterHood->m_MotorConfiguration.Feedback.WithSensorToMechanismRatio(226.6667 / 1.0);
+    (void)m_pShooterHood->m_MotorConfiguration.Slot0.WithKP(36.0).WithKI(0.0).WithKD(0.1);
+    (void)m_pShooterHood->m_MotorConfiguration.MotorOutput.WithNeutralMode(NeutralModeValue::Brake);
+    (void)m_pShooterHood->m_MotorConfiguration.MotorOutput.WithInverted(InvertedValue::Clockwise_Positive);
+    m_pShooterHood->ApplyConfiguration();
+
+    // Full down: 0.507324 (182.63664_deg), full up: 0.608398 (219.02328_deg)
+    // Starting position: 0.557129 (200.56644_deg)
+    constexpr const units::angle::degree_t HOOD_STARTING_ANGLE_CANCODER_REF = 200.0_deg;
+    units::angle::degree_t hoodCanCoderDegrees = m_pHoodCanCoder->GetAbsolutePosition().GetValue();
+    units::angle::degree_t hoodAngleDelta = hoodCanCoderDegrees - HOOD_STARTING_ANGLE_CANCODER_REF;
+    SmartDashboard::PutNumber("Hood delta", hoodAngleDelta.value());
+
+    // If delta is positive, we are above the expected starting point
+    //      Upper limit is ~220.0_deg - 200.0_deg = ~20.0_deg
+    // If delta is negative, we are below the expected starting point
+    //      Lower limit is ~185.0_deg - 200.0_deg = ~-15.0_deg
+
+    units::angle::turn_t hoodSetPositionTurns = hoodAngleDelta;
+    (void)m_pShooterHood->m_pTalonFx->GetConfigurator().SetPosition(hoodSetPositionTurns);
+    m_pShooterHood->SetPositionVoltage(HOOD_LOW_POSITION_DEGREES.value());
+
+
+
+    //Configuration for intake pivot motor
+    (void)m_pIntakePivot->m_MotorConfiguration.Feedback.WithSensorToMechanismRatio(39.6 / 1.0);
+    (void)m_pIntakePivot->m_MotorConfiguration.Slot0.WithKP(18.0).WithKI(0.0).WithKD(0.1);
+    (void)m_pIntakePivot->m_MotorConfiguration.MotorOutput.WithNeutralMode(NeutralModeValue::Brake);
+    (void)m_pIntakePivot->m_MotorConfiguration.MotorOutput.WithInverted(InvertedValue::Clockwise_Positive);
+    m_pIntakePivot->ApplyConfiguration();
 
     // Full down: 0.529297 (190.54692_deg), full up: 0.236572 (85.16592_deg)
     constexpr const units::angle::degree_t INTAKE_STARTING_ANGLE_CANCODER_REF = 90.0_deg;
@@ -366,16 +397,6 @@ void ArgonautRobot::ConfigureMotorControllers()
 
     units::angle::turn_t intakeSetPositionTurns = intakeAngleDelta;
     (void)m_pIntakePivot->m_pTalonFx->GetConfigurator().SetPosition(intakeSetPositionTurns);
-
-    //Configuration for intake pivot motor
-    (void)m_pIntakePivot->m_MotorConfiguration.Feedback.WithSensorToMechanismRatio(39.6 / 1.0);
-    (void)m_pIntakePivot->m_MotorConfiguration.Slot0.WithKP(18.0).WithKI(0.0).WithKD(0.1);
-    (void)m_pIntakePivot->m_MotorConfiguration.MotorOutput.WithNeutralMode(NeutralModeValue::Brake);
-    (void)m_pIntakePivot->m_MotorConfiguration.MotorOutput.WithInverted(InvertedValue::Clockwise_Positive);
-    m_pIntakePivot->ApplyConfiguration();
-
-    //Configuration for hopper feed motor (no changes from default right now)
-    //m_pHopperFeed->ApplyConfiguration();
 }
 
 
@@ -581,7 +602,7 @@ void ArgonautRobot::IntakeSequence()
 
 
 ////////////////////////////////////////////////////////////////
-///@method ArgonautRobot
+///@method ArgonautRobot::ShooterSequence
 ///
 ///This method handles any shooting related behavior. This includes
 ///shooter spin up, operation of the hopper and shooter feeder.     
@@ -589,6 +610,11 @@ void ArgonautRobot::IntakeSequence()
 ////////////////////////////////////////////////////////////////
 void ArgonautRobot::ShooterSequence()
 {
+    //State machine with controls for shooter spin up tied to both the camera align and the copilot shooter spinup
+    //shooting speed and hood angle to be tied into the distance determined by the camera 
+    //shooting may be done from the neutral area, where vision will not be used an the hood/shooter speed can be set
+    //Due to the intake/hopper design, the intake will need to be actuated after x amount of time to ensure the balls can reach the hopper feed
+
     enum ShootingState : uint32_t
     {
         SHOOTER_IDLE,
@@ -600,22 +626,75 @@ void ArgonautRobot::ShooterSequence()
     //Getting distance from the robotcamera thingy
     //RobotCamera::GetDistanceFromTarget();
 
-    //State machine with controls for shooter spin up tied to both the camera align and the copilot shooter spinup
-    //shooting speed and hood angle to be tied into the distance determined by the camera 
-    //shooting may be done from the neutral area, where vision will not be used an the hood/shooter speed can be set
-    //Due to the intake/hopper design, the intake will need to be actuated after x amount of time to ensure the balls can reach the hopper feed
+
+    static bool bShotInProgress;
+    static Timer shootTimer;
+    static units::time::second_t shootTimeStamp = 0.0_s;
+
+    // Hood movement control
+    units::angle::degree_t hoodFxDegrees = m_pShooterHood->m_pTalonFx->GetPosition().GetValue();
+    Argonaut::Controller::PovDirections auxPov = m_pAuxController->GetPovAsDirection();
+    if ((auxPov == HOOD_ADJUST_UP_POV) && (hoodFxDegrees < HOOD_UPPER_LIMIT_DEGREES))
+    {
+        m_pShooterHood->SetPositionVoltage(HOOD_HIGH_POSITION_DEGREES.value());
+    }
+    else if ((auxPov == HOOD_ADJUST_DOWN_POV) && (hoodFxDegrees > HOOD_LOWER_LIMIT_DEGREES))
+    {
+        m_pShooterHood->SetPositionVoltage(HOOD_LOW_POSITION_DEGREES.value());
+    }
+    else
+    {
+    }
+
+    units::angle::degree_t hoodCanCoderDegrees = m_pHoodCanCoder->GetAbsolutePosition().GetValue();
+    SmartDashboard::PutNumber("Hood CANcoder", hoodCanCoderDegrees.value());
+    SmartDashboard::PutNumber("Hood FX", hoodFxDegrees.value());
+
+    // Allow a manual pre-shot ramp up
+    static bool bPreShoot = false;
+    if (m_pAuxController->GetAxisValue(PRE_SHOOT_AXIS) > AXIS_INPUT_DEAD_BAND)
+    {
+        m_pShooterMotors->Set(SHOOTER_SPEED);
+        bPreShoot = true;
+        bShotInProgress = true;
+    }
+    else
+    {
+        bPreShoot = false;
+    }
+
+    // Control sequence for shooting
     if (m_pAuxController->GetAxisValue(SHOOT_AXIS) > AXIS_INPUT_DEAD_BAND)
     {
-        m_pHopperFeed->SetDutyCycle(-0.80);
-        m_pShooterFeed->SetDutyCycle(-0.80);
-        m_pShooterMotors->Set(SHOOTER_SPEED);
+        if (!bShotInProgress)
+        {
+            shootTimer.Reset();
+            shootTimer.Start();
+            m_pShooterMotors->Set(SHOOTER_SPEED);
+            shootTimeStamp = shootTimer.Get();
+            bShotInProgress = true;
+        }
+        else if (((shootTimer.Get() - shootTimeStamp) > 1.0_s) || bPreShoot)
+        {
+            m_pHopperFeed->SetDutyCycle(-0.80);
+            m_pShooterFeed->SetDutyCycle(-0.80);
+        }
+        else
+        {
+        }
     }
     else
     {
         m_pHopperFeed->SetDutyCycle(0.0);
         m_pShooterFeed->SetDutyCycle(0.0);
-        m_pShooterMotors->Set(0.0);
+        if (!bPreShoot)
+        {
+            m_pShooterMotors->Set(0.0);
+            bShotInProgress = false;
+        }
     }
+
+    SmartDashboard::PutNumber("Shooter RPM", m_pShooterMotors->GetMotorObject()->GetVelocity().GetValue().value());
 }
 
 

@@ -338,12 +338,16 @@ private:
     static const int                DRIVE_ALIGN_WITH_CAMERA_BUTTON          = DRIVE_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.DOWN_BUTTON;
     
     // Copilot Inputs
-    static const int                INTAKE_BUTTON                           = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUTTON;
-    static const int                OUTTAKE_BUTTON                          = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.DOWN_BUTTON;
+    static const int                INTAKE_BUTTON                           = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.DOWN_BUTTON;
+    static const int                OUTTAKE_BUTTON                          = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUTTON;
     static const int                INTAKE_PIVOT_UP_BUTTON                  = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUMPER;
     static const int                INTAKE_PIVOT_DOWN_BUTTON                = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.LEFT_BUMPER;
     static const int                SHOOT_AXIS                              = AUX_CONTROLLER_MAPPINGS->AXIS_MAPPINGS.LEFT_TRIGGER;
+    static const int                PRE_SHOOT_AXIS                          = AUX_CONTROLLER_MAPPINGS->AXIS_MAPPINGS.RIGHT_TRIGGER;
     static const int                ESTOP_BUTTON                            = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.NO_BUTTON;
+
+    static const Argonaut::Controller::PovDirections  HOOD_ADJUST_UP_POV                = Argonaut::Controller::PovDirections::POV_UP;
+    static const Argonaut::Controller::PovDirections  HOOD_ADJUST_DOWN_POV              = Argonaut::Controller::PovDirections::POV_DOWN;
 
     // CAN Signals
     // Note: Remember to check the CAN IDs in use in SwerveDrive.hpp.
@@ -389,14 +393,16 @@ private:
     static constexpr const units::angle::degree_t INTAKE_STARTING_POSITION_DEGREES      = 0_deg;
     static constexpr const units::angle::degree_t INTAKE_DOWN_POSITION_DEGREES          = 0_deg;
     static constexpr const units::angle::degree_t INTAKE_STARTING_ENCODER_VALUE         = 0_deg;
-    static constexpr const units::angle::degree_t HOOD_STARTING_POSITION_DEGREES        = 0_deg;
-    static constexpr const units::angle::degree_t HOOD_TARGET_POSITION_DEGREES          = 0_deg;
+    static constexpr const units::angle::degree_t HOOD_LOW_POSITION_DEGREES             = -9.0_deg;
+    static constexpr const units::angle::degree_t HOOD_HIGH_POSITION_DEGREES            = 9.0_deg;
     static constexpr const units::angle::degree_t HOOD_STARTING_ENCODER_VALUE           = 0_deg;
+    static constexpr const units::angle::degree_t HOOD_UPPER_LIMIT_DEGREES              = 18.0_deg;
+    static constexpr const units::angle::degree_t HOOD_LOWER_LIMIT_DEGREES              = -12.5_deg;
 
     static constexpr const double INTAKE_PIECE_MOTOR_SPEED                              = -1.0;
     static constexpr const double OUTTAKE_PIECE_MOTOR_SPEED                             = 1.0;
     static constexpr const double HOOD_MOTOR_SPEED                                      = 0.10;
-    static constexpr const double SHOOTER_SPEED                                         = 0.60;
+    static constexpr const double SHOOTER_SPEED                                         = 0.70;
     
     // Misc
     const std::string               AUTO_NO_ROUTINE_STRING                  = "No autonomous routine";
