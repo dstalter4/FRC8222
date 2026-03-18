@@ -654,7 +654,7 @@ void ArgonautRobot::ShooterSequence()
     static bool bPreShoot = false;
     if (m_pAuxController->GetAxisValue(PRE_SHOOT_AXIS) > AXIS_INPUT_DEAD_BAND)
     {
-        m_pShooterMotors->Set(SHOOTER_SPEED);
+        m_pShooterMotors->Set(SHOOTER_MOTOR_SPEED);
         bPreShoot = true;
         bShotInProgress = true;
     }
@@ -670,14 +670,14 @@ void ArgonautRobot::ShooterSequence()
         {
             shootTimer.Reset();
             shootTimer.Start();
-            m_pShooterMotors->Set(SHOOTER_SPEED);
+            m_pShooterMotors->Set(SHOOTER_MOTOR_SPEED);
             shootTimeStamp = shootTimer.Get();
             bShotInProgress = true;
         }
         else if (((shootTimer.Get() - shootTimeStamp) > 1.0_s) || bPreShoot)
         {
-            m_pHopperFeed->SetDutyCycle(-0.80);
-            m_pShooterFeed->SetDutyCycle(-0.80);
+            m_pHopperFeed->SetDutyCycle(HOPPER_FEED_MOTOR_SPEED);
+            m_pShooterFeed->SetDutyCycle(SHOOTER_FEED_MOTOR_SPEED);
         }
         else
         {

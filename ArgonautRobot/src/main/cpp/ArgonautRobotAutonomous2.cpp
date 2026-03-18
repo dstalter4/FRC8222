@@ -24,10 +24,17 @@
 /// @method ArgonautRobot::AutonomousRoutine2
 ///
 /// Autonomous routine 2.
+/// Another rough auto for grabbing fuel from the human player station and dumping
 ///
 ////////////////////////////////////////////////////////////////
 void ArgonautRobot::AutonomousRoutine2()
 {
+    //drive backwards
+    //wait a few seconds
+    //drive forward
+    //rotate towards hub
+    //shoot
+    
     // Returning from here will enter the idle state until autonomous is over
     RobotUtils::DisplayMessage("Auto routine 2 done.");
 }
