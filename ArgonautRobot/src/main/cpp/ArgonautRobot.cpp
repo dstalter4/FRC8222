@@ -725,7 +725,7 @@ void ArgonautRobot::ShooterSequence()
     //static ShootingState shootingState = SHOOTER_IDLE;
 
     //Getting distance from the robotcamera thingy
-    //RobotCamera::GetDistanceFromTarget();
+    RobotCamera::GetDistanceFromTarget();
 
 
     static bool bShotInProgress;
