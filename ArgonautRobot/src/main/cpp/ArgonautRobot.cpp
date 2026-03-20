@@ -76,6 +76,8 @@ ArgonautRobot::ArgonautRobot() :
     m_RobotMode                         (ROBOT_MODE_NOT_SET),
     m_AllianceColor                     (DriverStation::GetAlliance()),
     m_bRioPinsStable                    (false),
+    m_bIntakeSequenceActive             (false),
+    m_bShootSequenceActive              (false),
     m_HeartBeat                         (0U)
 {
     RobotUtils::DisplayMessage("Robot constructor.");
@@ -650,12 +652,14 @@ void ArgonautRobot::IntakeSequence()
     //Outtake fuel will also actuate the hopper feed as well as the shooter feed
     else if (m_pAuxController->GetButtonState(OUTTAKE_BUTTON)) 
     {
+        m_bIntakeSequenceActive = true;
         m_pIntake->SetDutyCycle(OUTTAKE_PIECE_MOTOR_SPEED);
-        // m_pShooterFeed->SetDutyCycle(OUTTAKE_SHOOTER_FEED_SPEED);
-        // m_pHopperFeed->SetDutyCycle(OUTTAKE_HOPPER_FEED_SPEED);
+        m_pShooterFeed->SetDutyCycle(OUTTAKE_SHOOTER_FEED_SPEED);
+        m_pHopperFeed->SetDutyCycle(OUTTAKE_HOPPER_FEED_SPEED);
     }
     else
     {
+        m_bIntakeSequenceActive = false;
         m_pIntake->SetDutyCycle(0.0);
     }
 
@@ -778,8 +782,11 @@ void ArgonautRobot::ShooterSequence()
     }
     else
     {
-        m_pHopperFeed->SetDutyCycle(0.0);
-        m_pShooterFeed->SetDutyCycle(0.0);
+        if (!m_bIntakeSequenceActive)
+        {
+            m_pHopperFeed->SetDutyCycle(0.0);
+            m_pShooterFeed->SetDutyCycle(0.0);
+        }
         if (!bPreShoot)
         {
             m_pShooterMotors->Set(0.0);

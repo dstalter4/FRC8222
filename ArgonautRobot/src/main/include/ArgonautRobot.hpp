@@ -316,6 +316,8 @@ private:
     <DriverStation::Alliance>       m_AllianceColor;                        // Color reported by driver station during a match
     bool                            m_bRioPinsStable;                       // Indicates whether the RIO pin measurements (e.g. PWM) are stable
     bool                            m_bCameraAlignInProgress;               // Indicates if an automatic camera align is in progress
+    bool                            m_bIntakeSequenceActive;                // Keep track of whether or not the intake sequence is active
+    bool                            m_bShootSequenceActive;                 // Keep track of whether or not the shoot sequence is active
     uint32_t                        m_HeartBeat;                            // Incremental counter to indicate the robot code is executing
     
     // CONSTS
