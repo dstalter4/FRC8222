@@ -29,9 +29,9 @@
 ////////////////////////////////////////////////////////////////
 void ArgonautRobot::AutonomousRoutine1()
 {
-    //drive forward
-    m_AutoSwerveDirections.SetSwerveDirections(RobotTranslation::ROBOT_TRANSLATION_REVERSE, RobotStrafe::ROBOT_NO_STRAFE, RobotRotation::ROBOT_COUNTER_CLOCKWISE);
-    AutonomousSwerveDriveSequence(m_AutoSwerveDirections, 0.15, 0.0, 0.2, 2.0_s, true);
+    //drive BACKWARDS PLS
+    m_AutoSwerveDirections.SetSwerveDirections(RobotTranslation::ROBOT_TRANSLATION_REVERSE, RobotStrafe::ROBOT_NO_STRAFE, RobotRotation::ROBOT_NO_ROTATION);
+    AutonomousSwerveDriveSequence(m_AutoSwerveDirections, 0.15, 0.0, 0.0, 2.0_s, true);
     //shooter ramp up
     m_pShooterMotors->Set(SHOOTER_MOTOR_SPEED);
     AutonomousDelay(2.0_s);
@@ -41,7 +41,7 @@ void ArgonautRobot::AutonomousRoutine1()
     AutonomousDelay(5.0_s);
     //everything off
     m_pShooterMotors->Set(0.0);
-    m_pHopperFeed->SetDutyCycle(0.0);
+    // m_pHopperFeed->SetDutyCycle(0.0);
     m_pShooterFeed->SetDutyCycle(0.0);
 
     // Returning from here will enter the idle state until autonomous is over

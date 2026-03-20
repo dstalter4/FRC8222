@@ -271,6 +271,7 @@ void RobotCamera::GetDistanceFromTarget()
 
     //estimated distance from target based on some trig
     double currentDistanceFromTarget = (TARGET_HEIGHT_INCHES - CAMERA_HEIGHT_FROM_GROUND_INCHES)/tan((CAMERA_MOUNTING_ANGLE_DEGREES + cameraAngleOffset));
+    SmartDashboard::PutNumber("Distance From Target", currentDistanceFromTarget);
     (void)currentDistanceFromTarget;
 }
 

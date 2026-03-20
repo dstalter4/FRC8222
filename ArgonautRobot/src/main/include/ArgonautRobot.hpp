@@ -352,12 +352,12 @@ private:
     // CAN Signals
     // Note: Remember to check the CAN IDs in use in SwerveDrive.hpp.
     // Superstructure uses IDs starting at 21
-    //These are subject to change as of writing the skeleton code
     static const unsigned           SHOOTER_HOOD_CAN_ID                     = 27;
     static const unsigned           SHOOTER_FEED_CAN_ID                     = 28;
     static const unsigned           INTAKE_CAN_ID                           = 29;
     static const unsigned           INTAKE_PIVOT_CAN_ID                     = 30;
     static const unsigned           HOPPER_FEED_CAN_ID                      = 31;
+   
     //left shooter can id: 32
     //center shooter can id: 33
     //right shooter can id: 34
@@ -401,10 +401,15 @@ private:
 
     static constexpr const double INTAKE_PIECE_MOTOR_SPEED                              = -1.0;
     static constexpr const double OUTTAKE_PIECE_MOTOR_SPEED                             = 1.0;
-    static constexpr const double HOOD_MOTOR_SPEED                                      = 0.10;
-    static constexpr const double HOPPER_FEED_MOTOR_SPEED                               = -0.80;
-    static constexpr const double SHOOTER_FEED_MOTOR_SPEED                              = -0.80;
-    static constexpr const double SHOOTER_MOTOR_SPEED                                   = 0.70;
+
+    //adding to allow for the shooter feed and hopper feed to eject when the outtake button is pressed, adjust speeds as needed 
+    static constexpr const double OUTTAKE_HOPPER_FEED_SPEED                             = 0.80;
+    static constexpr const double OUTTAKE_SHOOTER_FEED_SPEED                            = 0.80;
+
+    // static constexpr const double HOOD_MOTOR_SPEED                                      = 0.10;
+    static constexpr const double HOPPER_FEED_MOTOR_SPEED                               = -0.85;
+    static constexpr const double SHOOTER_FEED_MOTOR_SPEED                              = -0.85;
+    static constexpr const double SHOOTER_MOTOR_SPEED                                   =  0.65;
     
     // Misc
     const std::string               AUTO_NO_ROUTINE_STRING                  = "No autonomous routine";

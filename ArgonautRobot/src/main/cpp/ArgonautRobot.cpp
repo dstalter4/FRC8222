@@ -43,8 +43,10 @@ ArgonautRobot::ArgonautRobot() :
     m_pPigeon                           (new Pigeon2(PIGEON_CAN_ID, m_CanivoreBus)),
     m_pSwerveDrive                      (new SwerveDrive(m_pPigeon, GetCanBusReferenceLambda)),
 
-    //motor initialization          
-    m_pShooterHood                      (new TalonFxMotorController(SHOOTER_HOOD_CAN_ID)),
+    //motor initialization   
+    
+    //Shooter hood motor removed thursday at buckeye due to weight contraints
+    // m_pShooterHood                   (new TalonFxMotorController(SHOOTER_HOOD_CAN_ID)),
     m_pShooterFeed                      (new TalonFxMotorController(SHOOTER_FEED_CAN_ID)),
     m_pIntake                           (new TalonFxMotorController(INTAKE_CAN_ID)),
     m_pIntakePivot                      (new TalonFxMotorController(INTAKE_PIVOT_CAN_ID)),
@@ -60,7 +62,7 @@ ArgonautRobot::ArgonautRobot() :
     m_pCompressor                       (new Compressor(PneumaticsModuleType::CTREPCM)),
 
     //encoder initialization
-    m_pHoodCanCoder                     (new CANcoder(HOOD_CANCODER_CAN_ID)),
+    // m_pHoodCanCoder                     (new CANcoder(HOOD_CANCODER_CAN_ID)),
     m_pIntakePivotCanCoder              (new CANcoder(INTAKE_PIVOT_CANCODER_CAN_ID)),
    
     m_pMatchModeTimer                   (new Timer()),
@@ -68,9 +70,9 @@ ArgonautRobot::ArgonautRobot() :
     m_pSafetyTimer                      (new Timer()),
     m_CameraThread                      (RobotCamera::LimelightThread),
     m_IntakePivotAngle                  (0.0_deg),
-    m_HoodAngle                         (0.0_deg),
+    // m_HoodAngle                         (0.0_deg),
     m_IntakePivotTarget                 (0.0_deg),
-    m_HoodTarget                        (0.0_deg),
+    // m_HoodTarget                        (0.0_deg),
     m_RobotMode                         (ROBOT_MODE_NOT_SET),
     m_AllianceColor                     (DriverStation::GetAlliance()),
     m_bRioPinsStable                    (false),
@@ -100,7 +102,7 @@ ArgonautRobot::ArgonautRobot() :
     // Spawn the vision thread
     //RobotCamera::SetLimelightMode(RobotCamera::LimelightMode::DRIVER_CAMERA);
     //RobotCamera::SetLimelightLedMode(RobotCamera::LimelightLedMode::PIPELINE);
-    //m_CameraThread.detach();
+    m_CameraThread.detach();
 
     // Start the free running timer
     m_pRobotProgramTimer->Reset();
@@ -352,30 +354,30 @@ void ArgonautRobot::ConfigureMotorControllers()
     //Configuration for hopper feed motor (no changes from default right now)
     //m_pHopperFeed->ApplyConfiguration();
 
-
+    //Shooter hood removed due to weight constraints, fixed angle for buckeye
 
     //Configuration for shooter hood motor
-    (void)m_pShooterHood->m_MotorConfiguration.Feedback.WithSensorToMechanismRatio(226.6667 / 1.0);
+   /* (void)m_pShooterHood->m_MotorConfiguration.Feedback.WithSensorToMechanismRatio(226.6667 / 1.0);
     (void)m_pShooterHood->m_MotorConfiguration.Slot0.WithKP(36.0).WithKI(0.0).WithKD(0.1);
     (void)m_pShooterHood->m_MotorConfiguration.MotorOutput.WithNeutralMode(NeutralModeValue::Brake);
     (void)m_pShooterHood->m_MotorConfiguration.MotorOutput.WithInverted(InvertedValue::Clockwise_Positive);
-    m_pShooterHood->ApplyConfiguration();
+    m_pShooterHood->ApplyConfiguration(); */
 
     // Full down: 0.507324 (182.63664_deg), full up: 0.608398 (219.02328_deg)
     // Starting position: 0.557129 (200.56644_deg)
-    constexpr const units::angle::degree_t HOOD_STARTING_ANGLE_CANCODER_REF = 200.0_deg;
-    units::angle::degree_t hoodCanCoderDegrees = m_pHoodCanCoder->GetAbsolutePosition().GetValue();
-    units::angle::degree_t hoodAngleDelta = hoodCanCoderDegrees - HOOD_STARTING_ANGLE_CANCODER_REF;
-    SmartDashboard::PutNumber("Hood delta", hoodAngleDelta.value());
+    // constexpr const units::angle::degree_t HOOD_STARTING_ANGLE_CANCODER_REF = 200.0_deg;
+    // units::angle::degree_t hoodCanCoderDegrees = m_pHoodCanCoder->GetAbsolutePosition().GetValue();
+    // units::angle::degree_t hoodAngleDelta = hoodCanCoderDegrees - HOOD_STARTING_ANGLE_CANCODER_REF;
+    // SmartDashboard::PutNumber("Hood delta", hoodAngleDelta.value());
 
     // If delta is positive, we are above the expected starting point
     //      Upper limit is ~220.0_deg - 200.0_deg = ~20.0_deg
     // If delta is negative, we are below the expected starting point
     //      Lower limit is ~185.0_deg - 200.0_deg = ~-15.0_deg
 
-    units::angle::turn_t hoodSetPositionTurns = hoodAngleDelta;
-    (void)m_pShooterHood->m_pTalonFx->GetConfigurator().SetPosition(hoodSetPositionTurns);
-    m_pShooterHood->SetPositionVoltage(HOOD_LOW_POSITION_DEGREES.value());
+    // units::angle::turn_t hoodSetPositionTurns = hoodAngleDelta;
+    // (void)m_pShooterHood->m_pTalonFx->GetConfigurator().SetPosition(hoodSetPositionTurns);
+    // m_pShooterHood->SetPositionVoltage(HOOD_LOW_POSITION_DEGREES.value());
 
 
 
@@ -430,7 +432,7 @@ void ArgonautRobot::InitialStateSetup()
     SetLedsToAllianceColor();
 
     // Indicate the camera thread can continue
-    //RobotCamera::ReleaseThread();
+    RobotCamera::ReleaseThread();
 
     // Clear the debug output pin
     m_pDebugOutput->Set(false);
@@ -520,8 +522,96 @@ void ArgonautRobot::TeleopPeriodic()
 void ArgonautRobot::UpdateSmartDashboard()
 {
     // @todo: Check if RobotPeriodic() is called every 20ms and use static counter.
+
+    units::time::second_t matchTime = 0.0_s;
+    double batteryVoltage = DriverStation::GetBatteryVoltage();
+    std::string gameData = DriverStation::GetGameSpecificMessage();
+
+    if (DriverStation::IsFMSAttached())
+    {
+        matchTime = DriverStation::GetMatchTime();
+    }
+    else
+    {
+        matchTime = m_pMatchModeTimer->Get();
+    }
+
+    struct HubShift
+    {
+        bool m_Transition;
+        bool m_bShift1;
+        bool m_bShift2;
+        bool m_bShift3;
+        bool m_bShift4;
+        bool m_EndGame;
+    };
+    constexpr const HubShift ACTIVE_FIRST = {true, true, false, true, false, true};
+    constexpr const HubShift INACTIVE_FIRST = {true, false, true, false, true, true};
+
+    static bool bGotGameData = false;
+    static HubShift allianceHubShift;
+
+    // Look for the game data to be ready
+    if (!bGotGameData)
+    {
+        bool bInactiveFirst = false;
+        if (!gameData.empty())
+        {
+            // For some reason the game data is who is *inactive* first (instead of active)
+            bInactiveFirst = (((gameData.at(0U) == 'R') && (m_AllianceColor == DriverStation::kRed)) ||
+                              ((gameData.at(0U) == 'B') && (m_AllianceColor == DriverStation::kBlue)));
+        }
+
+        allianceHubShift = bInactiveFirst ? INACTIVE_FIRST : ACTIVE_FIRST;
+        bGotGameData = true;
+    }
+
+    // Auto: 20_s, Teleop: 110_s, End Game: 30_s (Driver Control Total: 140_s or 2m20s)
+    constexpr const units::time::second_t TRANSITION_END_TIME_S = 130_s;
+    constexpr const units::time::second_t SHIFT_1_END_TIME_S = 105_s;
+    constexpr const units::time::second_t SHIFT_2_END_TIME_S = 80_s;
+    constexpr const units::time::second_t SHIFT_3_END_TIME_S = 55_s;
+    constexpr const units::time::second_t SHIFT_4_END_TIME_S = 30_s;
+
+    bool bHubActive = false;
+    units::time::second_t shiftTime = 0.0_s;
+    if (matchTime > TRANSITION_END_TIME_S)
+    {
+        bHubActive = allianceHubShift.m_Transition;
+        shiftTime = matchTime - TRANSITION_END_TIME_S;
+    }
+    else if (matchTime > SHIFT_1_END_TIME_S)
+    {
+        bHubActive = allianceHubShift.m_bShift1;
+        shiftTime = matchTime - SHIFT_1_END_TIME_S;
+    }
+    else if (matchTime > SHIFT_2_END_TIME_S)
+    {
+        bHubActive = allianceHubShift.m_bShift2;
+        shiftTime = matchTime - SHIFT_2_END_TIME_S;
+    }
+    else if (matchTime > SHIFT_3_END_TIME_S)
+    {
+        bHubActive = allianceHubShift.m_bShift3;
+        shiftTime = matchTime - SHIFT_3_END_TIME_S;
+    }
+    else if (matchTime > SHIFT_4_END_TIME_S)
+    {
+        bHubActive = allianceHubShift.m_bShift4;
+        shiftTime = matchTime - SHIFT_4_END_TIME_S;
+    }
+    else
+    {
+        bHubActive = allianceHubShift.m_EndGame;
+        shiftTime = matchTime;
+    }
+
     // Give the drive team some state information
     SmartDashboard::PutBoolean("RIO pins stable", m_bRioPinsStable);
+    SmartDashboard::PutNumber("Battery voltage", batteryVoltage);
+    SmartDashboard::PutNumber("Match time", matchTime.value());
+    SmartDashboard::PutNumber("Shift time", shiftTime.value());
+    SmartDashboard::PutBoolean("Hub active", bHubActive);
 }
 
 
@@ -557,9 +647,12 @@ void ArgonautRobot::IntakeSequence()
     {
         m_pIntake->SetDutyCycle(INTAKE_PIECE_MOTOR_SPEED); 
     }
-    else if (m_pAuxController->GetButtonState(OUTTAKE_BUTTON)) //outtake fuel
+    //Outtake fuel will also actuate the hopper feed as well as the shooter feed
+    else if (m_pAuxController->GetButtonState(OUTTAKE_BUTTON)) 
     {
         m_pIntake->SetDutyCycle(OUTTAKE_PIECE_MOTOR_SPEED);
+        // m_pShooterFeed->SetDutyCycle(OUTTAKE_SHOOTER_FEED_SPEED);
+        // m_pHopperFeed->SetDutyCycle(OUTTAKE_HOPPER_FEED_SPEED);
     }
     else
     {
@@ -632,7 +725,7 @@ void ArgonautRobot::ShooterSequence()
     static units::time::second_t shootTimeStamp = 0.0_s;
 
     // Hood movement control
-    units::angle::degree_t hoodFxDegrees = m_pShooterHood->m_pTalonFx->GetPosition().GetValue();
+    /* units::angle::degree_t hoodFxDegrees = m_pShooterHood->m_pTalonFx->GetPosition().GetValue();
     Argonaut::Controller::PovDirections auxPov = m_pAuxController->GetPovAsDirection();
     if ((auxPov == HOOD_ADJUST_UP_POV) && (hoodFxDegrees < HOOD_UPPER_LIMIT_DEGREES))
     {
@@ -644,11 +737,11 @@ void ArgonautRobot::ShooterSequence()
     }
     else
     {
-    }
+    } */
 
-    units::angle::degree_t hoodCanCoderDegrees = m_pHoodCanCoder->GetAbsolutePosition().GetValue();
-    SmartDashboard::PutNumber("Hood CANcoder", hoodCanCoderDegrees.value());
-    SmartDashboard::PutNumber("Hood FX", hoodFxDegrees.value());
+    // units::angle::degree_t hoodCanCoderDegrees = m_pHoodCanCoder->GetAbsolutePosition().GetValue();
+    // SmartDashboard::PutNumber("Hood CANcoder", hoodCanCoderDegrees.value());
+    // SmartDashboard::PutNumber("Hood FX", hoodFxDegrees.value());
 
     // Allow a manual pre-shot ramp up
     static bool bPreShoot = false;
