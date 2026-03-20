@@ -644,45 +644,49 @@ void ArgonautRobot::PneumaticSequence()
 /////////////////////////////////////////////////////////////////
 void ArgonautRobot::IntakeSequence()
 {
-    //Turning the motors on and off for intake/outtake
-    if (m_pAuxController->GetButtonState(INTAKE_BUTTON)) //intake fuel
+    //establishing variable for intake position on dashboard
+    static bool bIntakeUp = true;
+
+    if (m_pAuxController->GetButtonState(OUTTAKE_BUTTON))
     {
-        m_pIntake->SetDutyCycle(INTAKE_PIECE_MOTOR_SPEED); 
-    }
-    //Outtake fuel will also actuate the hopper feed as well as the shooter feed
-    else if (m_pAuxController->GetButtonState(OUTTAKE_BUTTON)) 
-    {
+        //set intake motor to reference angle for down
+        (void)m_pIntakePivot->SetPositionVoltage(90.0);
+
+        bIntakeUp = false;
         m_bIntakeSequenceActive = true;
         m_pIntake->SetDutyCycle(OUTTAKE_PIECE_MOTOR_SPEED);
         m_pShooterFeed->SetDutyCycle(OUTTAKE_SHOOTER_FEED_SPEED);
         m_pHopperFeed->SetDutyCycle(OUTTAKE_HOPPER_FEED_SPEED);
     }
-    else
-    {
-        m_bIntakeSequenceActive = false;
-        m_pIntake->SetDutyCycle(0.0);
-    }
-
-    //establishing variable for intake position on dashboard
-    static bool bIntakeUp = true;
-
     //pivoting intake per the throughbore encoder
-    if (m_pAuxController->DetectButtonChange(INTAKE_PIVOT_UP_BUTTON))
+    else if (m_pAuxController->DetectButtonChange(INTAKE_PIVOT_UP_BUTTON))
     {
         bIntakeUp = true;
+        m_bIntakeSequenceActive = false;
 
         //set intake motor to reference angle for up
         (void)m_pIntakePivot->SetPositionVoltage(0.0);
+        m_pIntake->SetDutyCycle(0.0);
     }
     else if (m_pAuxController->DetectButtonChange(INTAKE_PIVOT_DOWN_BUTTON))
     {
         bIntakeUp = false;
+        m_bIntakeSequenceActive = false;
 
         //set intake motor to reference angle for down
         (void)m_pIntakePivot->SetPositionVoltage(90.0);
+        m_pIntake->SetDutyCycle(INTAKE_PIECE_MOTOR_SPEED);
     }
     else
     {
+        // Restore normal intake behavior
+        if (m_bIntakeSequenceActive)
+        {
+            m_pIntake->SetDutyCycle(INTAKE_PIECE_MOTOR_SPEED);
+            m_pShooterFeed->SetDutyCycle(0.0);
+            m_pHopperFeed->SetDutyCycle(0.0);
+            m_bIntakeSequenceActive = false;
+        }
     }
 
     //units::angle::degree_t pivotAngleDegrees = m_pIntakePivot->m_pTalonFx->GetPosition().GetValue();
