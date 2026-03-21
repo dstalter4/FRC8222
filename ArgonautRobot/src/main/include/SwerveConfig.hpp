@@ -124,6 +124,16 @@ namespace SwerveConfig
         BACK_LEFT_MODULE_T2D,
         BACK_RIGHT_MODULE_T2D
     };
+
+    // Note: If using the RobotTestCode routines (for Neo swerve), these objects have to be disabled (or use different CAN IDs).
+
+    // Config information on each swerve module.
+    // Fields are: Name, Position, Drive TalonFX CAN ID, Angle TalonFX CAN ID, CANCoder ID, Angle Offset, Motor CAN Bus Name, Encoder CAN Bus Name
+    // 2026: Angles measured with bevels facing right.  0.927002, 0.627441, 0.520752, 0.453857
+    static constexpr const SwerveConfig::ModuleInformation FRONT_LEFT_MODULE_INFO = {"Front left", SwerveConfig::ModulePosition::FRONT_LEFT, 11, 12, 21, 333.72072_deg, SwerveConfig::CANIVORE_CAN_BUS_NAME, SwerveConfig::CANIVORE_CAN_BUS_NAME};
+    static constexpr const SwerveConfig::ModuleInformation FRONT_RIGHT_MODULE_INFO = {"Front right", SwerveConfig::ModulePosition::FRONT_RIGHT, 13, 14, 22, 225.87876_deg, SwerveConfig::CANIVORE_CAN_BUS_NAME, SwerveConfig::CANIVORE_CAN_BUS_NAME};
+    static constexpr const SwerveConfig::ModuleInformation BACK_LEFT_MODULE_INFO = {"Back left", SwerveConfig::ModulePosition::BACK_LEFT, 15, 16, 23, 187.47072_deg, SwerveConfig::CANIVORE_CAN_BUS_NAME, SwerveConfig::CANIVORE_CAN_BUS_NAME};
+    static constexpr const SwerveConfig::ModuleInformation BACK_RIGHT_MODULE_INFO = {"Back right", SwerveConfig::ModulePosition::BACK_RIGHT, 17, 18, 24, 163.38852_deg, SwerveConfig::CANIVORE_CAN_BUS_NAME, SwerveConfig::CANIVORE_CAN_BUS_NAME};
 }
 
 #endif // SWERVECONFIG_HPP
