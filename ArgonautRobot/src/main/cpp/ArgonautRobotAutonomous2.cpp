@@ -29,12 +29,23 @@
 ////////////////////////////////////////////////////////////////
 void ArgonautRobot::AutonomousRoutine2()
 {
-    //drive backwards
-    //wait a few seconds
-    //drive forward
-    //rotate towards hub
-    //shoot
+    // Drop intake 
+
+    // drive forward
+    m_AutoSwerveDirections.SetSwerveDirections(RobotTranslation::ROBOT_TRANSLATION_FORWARD, RobotStrafe::ROBOT_NO_STRAFE, RobotRotation::ROBOT_COUNTER_CLOCKWISE);
+    AutonomousSwerveDriveSequence(m_AutoSwerveDirections, 0.25, 0.0, 0.2, 2.5_s, true);
     
+    //wait for fuel to be dumped 
+    AutonomousDelay(2.0_s);
+
+    // spin up
+    m_pShooterMotors->Set(SHOOTER_MOTOR_SPEED);
+    AutonomousDelay(2.0_s);
+
+    // shoot
+    m_pHopperFeed->SetDutyCycle(HOPPER_FEED_MOTOR_SPEED);
+    m_pShooterFeed->SetDutyCycle(SHOOTER_FEED_MOTOR_SPEED);
+
     // Returning from here will enter the idle state until autonomous is over
     RobotUtils::DisplayMessage("Auto routine 2 done.");
 }

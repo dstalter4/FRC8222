@@ -270,8 +270,8 @@ void RobotCamera::GetDistanceFromTarget()
     double cameraAngleOffset = m_pLimelightNetworkTable->GetNumber("ty", 0.0); //vertical offset from limelight
 
     //estimated distance from target based on some trig
-    double currentDistanceFromTarget = (TARGET_HEIGHT_INCHES - CAMERA_HEIGHT_FROM_GROUND_INCHES)/tan((CAMERA_MOUNTING_ANGLE_DEGREES + cameraAngleOffset));
-    (void)currentDistanceFromTarget;
+    double currentDistanceFromTarget = (TARGET_HEIGHT_INCHES - CAMERA_HEIGHT_FROM_GROUND_INCHES) / std::tan((CAMERA_MOUNTING_ANGLE_DEGREES + cameraAngleOffset));
+    SmartDashboard::PutNumber("Distance From Target", currentDistanceFromTarget);
 }
 
 

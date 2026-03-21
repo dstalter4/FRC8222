@@ -40,7 +40,7 @@
 #include "ArgonautTalon.hpp"                                // for custom Talon control
 #include "RobotUtils.hpp"                                   // for ASSERT, DEBUG_PRINTS
 #include "SwerveDrive.hpp"                                  // for using swerve drive
-#include "ctre/phoenix6/CANBus.hpp"                         // for creating CANBus bojects
+#include "ctre/phoenix6/CANBus.hpp"                         // for creating CANBus objects
 #include "ctre/phoenix6/CANdle.hpp"                         // for interacting with the CANdle
 #include "ctre/phoenix6/Pigeon2.hpp"                        // for PigeonIMU
 #include "ctre/phoenix6/controls/RainbowAnimation.hpp"      // for creating animations on the CANdle
@@ -307,15 +307,13 @@ private:
     std::thread                     m_CameraThread;
     
     // Misc
-    units::angle::degree_t          m_IntakePivotAngle;                     //current reading of the intake pivot
-    units::angle::degree_t          m_HoodAngle;                            //current reading of the hood angle 
-    units::angle::degree_t          m_IntakePivotTarget;                    //target angle of the intake 
-    units::angle::degree_t          m_HoodTarget;                           //target angle of the hood
     RobotMode                       m_RobotMode;                            // Keep track of the current robot state
     std::optional
     <DriverStation::Alliance>       m_AllianceColor;                        // Color reported by driver station during a match
     bool                            m_bRioPinsStable;                       // Indicates whether the RIO pin measurements (e.g. PWM) are stable
     bool                            m_bCameraAlignInProgress;               // Indicates if an automatic camera align is in progress
+    bool                            m_bIntakeSequenceActive;                // Keep track of whether or not the intake sequence is active
+    bool                            m_bShootSequenceActive;                 // Keep track of whether or not the shoot sequence is active
     uint32_t                        m_HeartBeat;                            // Incremental counter to indicate the robot code is executing
     
     // CONSTS
@@ -352,7 +350,6 @@ private:
     // CAN Signals
     // Note: Remember to check the CAN IDs in use in SwerveDrive.hpp.
     // Superstructure uses IDs starting at 21
-    //These are subject to change as of writing the skeleton code
     static const unsigned           SHOOTER_HOOD_CAN_ID                     = 27;
     static const unsigned           SHOOTER_FEED_CAN_ID                     = 28;
     static const unsigned           INTAKE_CAN_ID                           = 29;
@@ -401,10 +398,15 @@ private:
 
     static constexpr const double INTAKE_PIECE_MOTOR_SPEED                              = -1.0;
     static constexpr const double OUTTAKE_PIECE_MOTOR_SPEED                             = 1.0;
-    static constexpr const double HOOD_MOTOR_SPEED                                      = 0.10;
-    static constexpr const double HOPPER_FEED_MOTOR_SPEED                               = -0.80;
-    static constexpr const double SHOOTER_FEED_MOTOR_SPEED                              = -0.80;
-    static constexpr const double SHOOTER_MOTOR_SPEED                                   = 0.70;
+
+    //adding to allow for the shooter feed and hopper feed to eject when the outtake button is pressed, adjust speeds as needed 
+    static constexpr const double OUTTAKE_HOPPER_FEED_SPEED                             = 0.80;
+    static constexpr const double OUTTAKE_SHOOTER_FEED_SPEED                            = 0.80;
+
+    // static constexpr const double HOOD_MOTOR_SPEED                                      = 0.10;
+    static constexpr const double HOPPER_FEED_MOTOR_SPEED                               = -0.85;
+    static constexpr const double SHOOTER_FEED_MOTOR_SPEED                              = -0.85;
+    static constexpr const double SHOOTER_MOTOR_SPEED                                   =  0.65;
     
     // Misc
     const std::string               AUTO_NO_ROUTINE_STRING                  = "No autonomous routine";
