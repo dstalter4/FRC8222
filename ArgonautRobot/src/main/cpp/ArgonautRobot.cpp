@@ -47,13 +47,13 @@ ArgonautRobot::ArgonautRobot() :
     
     //Shooter hood motor removed thursday at buckeye due to weight contraints
     // m_pShooterHood                   (new TalonFxMotorController(SHOOTER_HOOD_CAN_ID)),
-    m_pShooterFeed                      (new TalonFxMotorController(SHOOTER_FEED_CAN_ID)),
-    m_pIntake                           (new TalonFxMotorController(INTAKE_CAN_ID)),
-    m_pIntakePivot                      (new TalonFxMotorController(INTAKE_PIVOT_CAN_ID)),
-    m_pHopperFeed                       (new TalonFxMotorController(HOPPER_FEED_CAN_ID)),
+    m_pShooterFeed                      (new TalonFxMotorController(SHOOTER_FEED_CAN_ID, m_RioCanBus)),
+    m_pIntake                           (new TalonFxMotorController(INTAKE_CAN_ID, m_RioCanBus)),
+    m_pIntakePivot                      (new TalonFxMotorController(INTAKE_PIVOT_CAN_ID, m_RioCanBus)),
+    m_pHopperFeed                       (new TalonFxMotorController(HOPPER_FEED_CAN_ID, m_RioCanBus)),
 
     //motor group for all three shooting motors, this is intentionally set to coast due to the flywheels
-    m_pShooterMotors                    (new TalonMotorGroup<TalonFX>("Shooter Motors", THREE_MOTORS, SHOOTER_MOTORS_START_CAN_ID, MotorGroupControlMode::FOLLOW, NeutralModeValue::Coast, false)),
+    m_pShooterMotors                    (new TalonMotorGroup<TalonFX>("Shooter Motors", THREE_MOTORS, SHOOTER_MOTORS_START_CAN_ID, MotorGroupControlMode::FOLLOW, NeutralModeValue::Coast, m_RioCanBus, false)),
     
     m_pCandle                           (new CANdle(CANDLE_CAN_ID, m_CanivoreBus)),
     m_LedStripSolidColor                (0, (NUMBER_OF_LEDS - 1)),
