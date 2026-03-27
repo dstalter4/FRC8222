@@ -804,7 +804,7 @@ void ArgonautRobot::CameraSequence()
     if (m_pDriveController->GetButtonState(DRIVE_ALIGN_WITH_CAMERA_BUTTON))
     {
         m_bCameraAlignInProgress = true;
-        RobotCamera::AutonomousCamera::AlignToTargetSwerve();
+        RobotCamera::AutonomousCamera::AlignToTargetSwerve(m_pPigeon->GetYaw().GetValue().value());
     }
     else
     {

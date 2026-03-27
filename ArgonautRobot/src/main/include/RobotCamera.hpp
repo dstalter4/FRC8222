@@ -82,7 +82,7 @@ public:
         };
 
         static bool AlignToTarget(SeekDirection seekDirection, const bool bEnableMotors = true);
-        static void AlignToTargetSwerve();
+        static void AlignToTargetSwerve(double currentYawDegrees);
 
     private:
         static Timer m_AutoCameraTimer;
