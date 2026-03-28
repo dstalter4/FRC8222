@@ -22,6 +22,7 @@
 #include "ArgonautRobot.hpp"                    // for GetRobotInstance()
 
 // STATIC MEMBER DATA
+int                                             RobotCamera::m_TargetAprilTagId;
 PIDController                                   RobotCamera::m_VisionPid{0.03, 0.00, 0.002};
 PIDController                                   RobotCamera::m_VisionRotatePid{0.03, 0.00, 0.002};
 std::shared_ptr<nt::NetworkTable>               RobotCamera::m_pLimelightNetworkTable;
@@ -369,17 +370,13 @@ void RobotCamera::LimelightThread()
     }
 
     // The limelight camera mode will be set by autonomous or teleop
-    //const uint32_t APRIL_TAG_PRIORITY = (ArgonautRobot::GetRobotInstance()->m_AllianceColor.value() == DriverStation::Alliance::kRed) ? 5U : 5U;
-    //m_pLimelightNetworkTable->PutNumber("priorityid", APRIL_TAG_PRIORITY);
+    m_TargetAprilTagId = (ArgonautRobot::GetRobotInstance()->m_AllianceColor.value() == DriverStation::Alliance::kRed) ? 10U : 25U;
     static SendableChooser<int> limelightIdChooser;
-    limelightIdChooser.SetDefaultOption("1", 1);
-    limelightIdChooser.AddOption("2", 2);
-    limelightIdChooser.AddOption("3", 3);
-    limelightIdChooser.AddOption("4", 4);
+    limelightIdChooser.SetDefaultOption("Alliance Hub", m_TargetAprilTagId);
+    limelightIdChooser.AddOption("1", 1);
     limelightIdChooser.AddOption("5", 5);
-    limelightIdChooser.AddOption("6", 6);
-    limelightIdChooser.AddOption("7", 7);
-    limelightIdChooser.AddOption("8", 8);
+    limelightIdChooser.AddOption("9", 9);
+    limelightIdChooser.AddOption("26", 26);
     SmartDashboard::PutData("Limelight Target ID", &limelightIdChooser);
 
 

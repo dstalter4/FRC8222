@@ -241,6 +241,7 @@ private:
     };
     
     // Camera related variables
+    static int                                  m_TargetAprilTagId;                 // Track which AprilTag to target
     static PIDController                        m_VisionPid;                        // PID controller for automated vision targeting, specifically for strafe
     static PIDController                        m_VisionRotatePid;                  // PID controller for automated vision targeting, rotation
     static std::shared_ptr<nt::NetworkTable>    m_pLimelightNetworkTable;           // Network table for the limelight camera
