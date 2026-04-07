@@ -402,13 +402,17 @@ private:
     static constexpr const double OUTTAKE_PIECE_MOTOR_SPEED                             = 1.0;
 
     //adding to allow for the shooter feed and hopper feed to eject when the outtake button is pressed, adjust speeds as needed 
-    static constexpr const double OUTTAKE_HOPPER_FEED_SPEED                             = 0.80;
-    static constexpr const double OUTTAKE_SHOOTER_FEED_SPEED                            = 0.80;
+    static constexpr const double OUTTAKE_HOPPER_FEED_SPEED                             = -0.80;
+    static constexpr const double OUTTAKE_SHOOTER_FEED_SPEED                            = -0.80;
 
     // static constexpr const double HOOD_MOTOR_SPEED                                      = 0.10;
-    static constexpr const double HOPPER_FEED_MOTOR_SPEED                               = -0.85;
-    static constexpr const double SHOOTER_FEED_MOTOR_SPEED                              = -0.85;
-    static constexpr const double SHOOTER_MOTOR_SPEED                                   =  0.65;
+
+    //Testing these values, the shooter and hopper feed cannot be more than 0.05 apart or jams happen
+    //the shooter feed and hopper feed motors are getting switched, update accordingly 
+    static constexpr const double HOPPER_FEED_MOTOR_SPEED                               = 0.61; //yes the speed is 61
+    static constexpr const double SHOOTER_FEED_MOTOR_SPEED                              = 0.70;
+    static constexpr const double SHOOTER_MOTOR_SPEED                                   = 0.65;
+    static constexpr const double SHOOTER_PASSING_MOTOR_SPEED                           = 0.85;
     
     // Misc
     const std::string               AUTO_NO_ROUTINE_STRING                  = "No autonomous routine";

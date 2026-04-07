@@ -24,7 +24,7 @@
 /// @method ArgonautRobot::AutonomousRoutine1
 ///
 /// Autonomous routine 1.
-/// Very rough auto program for shooting the initial amount of fuel from the center
+/// Back up from against the hub and shoot the eight pieces of fuel
 ///
 ////////////////////////////////////////////////////////////////
 void ArgonautRobot::AutonomousRoutine1()
