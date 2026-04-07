@@ -314,6 +314,7 @@ private:
     bool                            m_bCameraAlignInProgress;               // Indicates if an automatic camera align is in progress
     bool                            m_bIntakeSequenceActive;                // Keep track of whether or not the intake sequence is active
     bool                            m_bShootSequenceActive;                 // Keep track of whether or not the shoot sequence is active
+    units::angle::degree_t          m_HoodAngleDegrees;                     // Keep track of the hood position
     uint32_t                        m_HeartBeat;                            // Incremental counter to indicate the robot code is executing
     
     // CONSTS
@@ -338,6 +339,8 @@ private:
     // Copilot Inputs
     static const int                INTAKE_BUTTON                           = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.DOWN_BUTTON;
     static const int                OUTTAKE_BUTTON                          = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUTTON;
+    static const int                PASSING_SHOOTING_CHANGE                 = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.LEFT_BUTTON;
+    static const int                AUTOMATIC_HOOD_ADJUST                   = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.UP_BUTTON;
     static const int                INTAKE_PIVOT_UP_BUTTON                  = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.RIGHT_BUMPER;
     static const int                INTAKE_PIVOT_DOWN_BUTTON                = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.LEFT_BUMPER;
     static const int                SHOOT_AXIS                              = AUX_CONTROLLER_MAPPINGS->AXIS_MAPPINGS.LEFT_TRIGGER;
@@ -387,16 +390,14 @@ private:
     // (none)
 
     // Motor speeds and angles
-    static constexpr const units::angle::degree_t INTAKE_STARTING_POSITION_DEGREES      = 0_deg;
-    static constexpr const units::angle::degree_t INTAKE_DOWN_POSITION_DEGREES          = 0_deg;
-    static constexpr const units::angle::degree_t INTAKE_STARTING_ENCODER_VALUE         = 0_deg;
-    static constexpr const units::angle::degree_t HOOD_LOW_POSITION_DEGREES             = -9.0_deg;
-    static constexpr const units::angle::degree_t HOOD_HIGH_POSITION_DEGREES            = 9.0_deg;
-    static constexpr const units::angle::degree_t HOOD_STARTING_ENCODER_VALUE           = 0_deg;
-    static constexpr const units::angle::degree_t HOOD_UPPER_LIMIT_DEGREES              = 18.0_deg;
-    static constexpr const units::angle::degree_t HOOD_LOWER_LIMIT_DEGREES              = -12.5_deg;
+    static constexpr const units::angle::degree_t INTAKE_STARTING_POSITION_DEGREES      = 0.0_deg;
+    static constexpr const units::angle::degree_t INTAKE_DOWN_POSITION_DEGREES          = 105.0_deg;
+    static constexpr const units::angle::degree_t INTAKE_UP_POSITION_DEGREES            = 0.0_deg;
+    static constexpr const units::angle::degree_t HOOD_START_OR_TOWER_ANGLE_DEGREES     = 0.0_deg;  // CANcoder 313.0_deg
+    static constexpr const units::angle::degree_t HOOD_SHOOT_MID_RANGE_ANGLE_DEGREES    = -6.0_deg; // CANcoder 309.0_deg
+    static constexpr const units::angle::degree_t HOOD_PASSING_ANGLE_DEGREES            = 9.0_deg;  // CANcoder 322.0_deg
 
-    static constexpr const double INTAKE_PIECE_MOTOR_SPEED                              = -1.0;
+    static constexpr const double INTAKE_PIECE_MOTOR_SPEED                              = -0.85;
     static constexpr const double OUTTAKE_PIECE_MOTOR_SPEED                             = 1.0;
 
     //adding to allow for the shooter feed and hopper feed to eject when the outtake button is pressed, adjust speeds as needed 
