@@ -116,8 +116,8 @@ public:
     // Toggle between what processed image is shown on the dashboard
     static void ToggleCameraProcessedImage();
     
-    // This is a thing
-    static void GetDistanceFromTarget();
+    // Getting calculated distance via trig
+    static double GetDistanceFromTarget();
 
     // The vision thread itself
     static void VisionThread();

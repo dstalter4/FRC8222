@@ -186,6 +186,9 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve(double currentYawDegrees
         return;
     }
 
+    //add a section in here for filtering the tags based on the robot angle or something of that nature
+    
+
     // reading limelight data from network tables
     double targetX = m_pLimelightNetworkTable->GetNumber("tx", 0.0);
 
@@ -212,7 +215,7 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve(double currentYawDegrees
         strafe += std::copysign(0.02, strafe);
     }
 
-    if(std::abs(rotation) > 0.01)
+    if (std::abs(rotation) > 0.01)
     {
         rotation += std::copysign(0.02, rotation);
     }
@@ -259,21 +262,26 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve(double currentYawDegrees
 /// target.
 ///
 ////////////////////////////////////////////////////////////////
-void RobotCamera::GetDistanceFromTarget()
+double RobotCamera::GetDistanceFromTarget()
 {
     //Logic for this was pulled from here https://docs.limelightvision.io/docs/docs-limelight/tutorials/tutorial-estimating-distance#using-a-fixed-angle-camera
 
-    constexpr const double CAMERA_MOUNTING_ANGLE_DEGREES = 18.0; //also estimated
-    constexpr const double CAMERA_HEIGHT_FROM_GROUND_INCHES = 12.0; //inches, estimated
-    constexpr const double TARGET_HEIGHT_INCHES = 44.25; //Inches from center of april tag 
+    //Identify the primary tracked ID then get the distance via ty and trig
+    constexpr const double CAMERA_MOUNTING_ANGLE_DEGREES = 18; 
+    constexpr const double CAMERA_HEIGHT_FROM_GROUND_INCHES= 26.5; //confirmed
+    constexpr const double TARGET_HEIGHT_INCHES = 44.25; //Inches from center of april tag, confirmed
     double cameraAngleOffset = m_pLimelightNetworkTable->GetNumber("ty", 0.0); //vertical offset from limelight
 
+    double angleToGoalDegrees = CAMERA_MOUNTING_ANGLE_DEGREES - cameraAngleOffset; 
+    double angleToGoalRadians = angleToGoalDegrees * (3.14159 / 180);
+
     //estimated distance from target based on some trig
-    double currentDistanceFromTarget = (TARGET_HEIGHT_INCHES - CAMERA_HEIGHT_FROM_GROUND_INCHES) / std::tan((CAMERA_MOUNTING_ANGLE_DEGREES + cameraAngleOffset));
-    SmartDashboard::PutNumber("Distance From Target", currentDistanceFromTarget);
+    double currentDistanceFromTargetInches = (TARGET_HEIGHT_INCHES - CAMERA_HEIGHT_FROM_GROUND_INCHES) / std::tan(angleToGoalRadians);
+    double currentDistanceFromTargetFeet = (currentDistanceFromTargetInches + 18) / 12;
+    SmartDashboard::PutNumber("Distance From Target", currentDistanceFromTargetFeet);
+
+    return currentDistanceFromTargetFeet;
 }
-
-
 
 ////////////////////////////////////////////////////////////////
 /// @method RobotCamera::UsbCameraInfo::UsbCameraInfo
@@ -370,6 +378,7 @@ void RobotCamera::LimelightThread()
     }
 
     // The limelight camera mode will be set by autonomous or teleop
+    //9-11 and 25-27 
     m_TargetAprilTagId = (ArgonautRobot::GetRobotInstance()->m_AllianceColor.value() == DriverStation::Alliance::kRed) ? 10U : 25U;
     static SendableChooser<int> limelightIdChooser;
     limelightIdChooser.SetDefaultOption("Alliance Hub", m_TargetAprilTagId);
