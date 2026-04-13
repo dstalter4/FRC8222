@@ -58,6 +58,7 @@ ArgonautRobot::ArgonautRobot() :
     m_pCandle                           (new CANdle(CANDLE_CAN_ID, m_CanivoreBus)),
     m_LedStripSolidColor                (0, (NUMBER_OF_LEDS - 1)),
     m_RainbowAnimation                  (0, (NUMBER_OF_LEDS - 1)),
+    m_EmptyAnimation                    (0),
     m_pDebugOutput                      (new DigitalOutput(DEBUG_OUTPUT_DIO_CHANNEL)),
     m_pCompressor                       (new Compressor(PneumaticsModuleType::CTREPCM)),
 
@@ -94,9 +95,10 @@ ArgonautRobot::ArgonautRobot() :
     RobotUtils::DisplayFormattedMessage("The drive left/right axis is: %d\n", Argonaut::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.LEFT_X_AXIS);
 
     CANdleConfiguration candleConfig;
-    candleConfig.LED.StripType = StripTypeValue::RGBW;
+    candleConfig.LED.StripType = StripTypeValue::GRB;
     m_pCandle->GetConfigurator().Apply(candleConfig);
-    m_pCandle->SetControl(m_RainbowAnimation);
+    m_RainbowAnimation.FrameRate = 50_Hz;
+    m_pCandle->SetControl(m_LedStripSolidColor.WithColor(ARGONAUT_LED_COLOR));
 
     // Spawn the vision thread
     //RobotCamera::SetLimelightMode(RobotCamera::LimelightMode::DRIVER_CAMERA);
@@ -428,6 +430,7 @@ void ArgonautRobot::InitialStateSetup()
     m_AllianceColor = DriverStation::GetAlliance();
 
     //Set the LEDs to the alliance color
+    m_pCandle->SetControl(m_EmptyAnimation);
     SetLedsToAllianceColor();
 
     // Indicate the camera thread can continue

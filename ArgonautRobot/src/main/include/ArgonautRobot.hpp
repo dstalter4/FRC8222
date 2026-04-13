@@ -281,6 +281,8 @@ private:
     CANdle *                        m_pCandle;                              // Controls an RGB LED strip
     SolidColor                      m_LedStripSolidColor;                   // Used when setting the LEDs to RGB values
     RainbowAnimation                m_RainbowAnimation;                     // Rainbow animation configuration (brightness, speed, # LEDs)
+    EmptyAnimation                  m_EmptyAnimation;                       // Empty animation to clear the configuration in a slot
+    static constexpr const RGBWColor ARGONAUT_LED_COLOR{48, 221, 240, 0};   // Argonaut team RGBW color
     static constexpr const RGBWColor RGBW_OFF{0, 0, 0, 0};                  // Common RGBWColor expression representing LEDs off
 
     // Digital I/O
@@ -431,7 +433,7 @@ private:
     static const unsigned           SINGLE_MOTOR                            = 1;
     static const unsigned           TWO_MOTORS                              = 2;
     static const unsigned           THREE_MOTORS                            = 3;
-    static const unsigned           NUMBER_OF_LEDS                          = 8;
+    static const unsigned           NUMBER_OF_LEDS                          = 262;
     static const char               NULL_CHARACTER                          = '\0';
 
     static const unsigned           CAMERA_RUN_INTERVAL_MS                  = 1000U;
