@@ -58,6 +58,7 @@ ArgonautRobot::ArgonautRobot() :
     m_pCandle                           (new CANdle(CANDLE_CAN_ID, m_CanivoreBus)),
     m_LedStripSolidColor                (0, (NUMBER_OF_LEDS - 1)),
     m_RainbowAnimation                  (0, (NUMBER_OF_LEDS - 1)),
+    m_FireAnimation                     (0, (NUMBER_OF_LEDS * 2)),
     m_EmptyAnimation                    (0),
     m_pDebugOutput                      (new DigitalOutput(DEBUG_OUTPUT_DIO_CHANNEL)),
     m_pCompressor                       (new Compressor(PneumaticsModuleType::CTREPCM)),
@@ -783,6 +784,17 @@ void ArgonautRobot::ShooterSequence()
             m_pShooterMotors->Set(0.0);
             bShotInProgress = false;
         }
+    }
+
+    if (bShotInProgress)
+    {
+        m_pCandle->SetControl(m_FireAnimation);
+        //m_pCandle->SetControl(controls::StrobeAnimation{0, NUMBER_OF_LEDS - 1}.WithColor({ARGONAUT_LED_COLOR}));
+    }
+    else
+    {
+        m_pCandle->SetControl(m_EmptyAnimation);
+        SetLedsToAllianceColor();
     }
 
     SmartDashboard::PutNumber("Shooter RPM", m_pShooterMotors->GetMotorObject()->GetVelocity().GetValue().value());

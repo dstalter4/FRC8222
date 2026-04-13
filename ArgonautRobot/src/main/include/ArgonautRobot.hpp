@@ -281,6 +281,7 @@ private:
     CANdle *                        m_pCandle;                              // Controls an RGB LED strip
     SolidColor                      m_LedStripSolidColor;                   // Used when setting the LEDs to RGB values
     RainbowAnimation                m_RainbowAnimation;                     // Rainbow animation configuration (brightness, speed, # LEDs)
+    FireAnimation                   m_FireAnimation;                        // Fire animation configuration (brightness, speed, # LEDs)
     EmptyAnimation                  m_EmptyAnimation;                       // Empty animation to clear the configuration in a slot
     static constexpr const RGBWColor ARGONAUT_LED_COLOR{48, 221, 240, 0};   // Argonaut team RGBW color
     static constexpr const RGBWColor RGBW_OFF{0, 0, 0, 0};                  // Common RGBWColor expression representing LEDs off
