@@ -23,8 +23,8 @@
 
 // STATIC MEMBER DATA
 int                                             RobotCamera::m_TargetAprilTagId;
-PIDController                                   RobotCamera::m_VisionPid{0.03, 0.00, 0.002};
-PIDController                                   RobotCamera::m_VisionRotatePid{0.03, 0.00, 0.002};
+PIDController                                   RobotCamera::m_VisionPid{0.025, 0.02, 0.002};
+PIDController                                   RobotCamera::m_VisionRotatePid{0.025, 0.02, 0.002};
 std::shared_ptr<nt::NetworkTable>               RobotCamera::m_pLimelightNetworkTable;
 RobotCamera::UsbCameraStorage                   RobotCamera::m_UsbCameras;
 RobotCamera::UsbCameraInfo *                    RobotCamera::m_pCurrentUsbCamera;
@@ -186,14 +186,46 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve(double currentYawDegrees
         return;
     }
 
-    //add a section in here for filtering the tags based on the robot angle or something of that nature
-    
-
     // reading limelight data from network tables
     double targetX = m_pLimelightNetworkTable->GetNumber("tx", 0.0);
 
-    //Grabbing active tracked ID
+    // Grabbing active tracked ID
+    // This might not do anything for all I know
     int primaryTrackedId = m_pLimelightNetworkTable->GetNumber("tid", 0.0);
+
+    //Variable dependant on the primary tracked id
+    double rotationSetpoint = 0.0;
+
+    //Go to the set angle for the position of the robot, if right/center/left, go to specific setpoint
+    if ((primaryTrackedId == 3U) || (primaryTrackedId == 9U) || (primaryTrackedId == 24U) || (primaryTrackedId == 1U))
+    {
+        //left
+        rotationSetpoint = -40.0;
+    }
+    else if ((primaryTrackedId == 2U) || (primaryTrackedId == 11U) || (primaryTrackedId == 27U))
+    {
+        //right
+        rotationSetpoint = 40.0;
+    }
+    else if ((primaryTrackedId == (5U)) || (primaryTrackedId ==(10U)) || (primaryTrackedId == (26U)))
+    {
+        //center
+        rotationSetpoint = 0.0;
+    }
+    else
+    {
+    }
+
+    static int lastID = -1;
+
+    if (primaryTrackedId!=lastID)
+    {
+        m_VisionRotatePid.SetSetpoint(rotationSetpoint); 
+        lastID = primaryTrackedId;
+    }
+
+    m_VisionRotatePid.SetTolerance(1.0);            //Assuming this doesn't need to always be straight on 
+    m_VisionRotatePid.EnableContinuousInput(0,360); //Currently set for 0 to 360
 
     // Establishing strafe as a calculated error from the target
     double strafe = m_VisionPid.Calculate(targetX);
@@ -201,12 +233,9 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve(double currentYawDegrees
     //Establishing rotation as a calculated error from the ideal angle
     double rotation = m_VisionRotatePid.Calculate(currentYawDegrees);
 
-    SmartDashboard::PutNumber("Limelight Primary Tag ID", primaryTrackedId);
-    SmartDashboard::PutNumber("Limelight targetX", targetX);
-    SmartDashboard::PutNumber("Limelight raw strafe: ", strafe);
-
-    // Clamping strafe and rotation output, strafe lowered from 0.95
-    strafe = std::clamp(strafe, -0.25,0.25);
+    // Clamping strafe and rotation output, strafe lowered from 0.95 for testing reasons
+    // These should be updated once we can verify the behavior of the rotation addition
+    strafe = std::clamp(strafe, -0.9,0.9);
     rotation = std::clamp(rotation, -0.25, 0.25);
 
     // Recommended feedforward for both rotation and strafe
@@ -220,18 +249,47 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve(double currentYawDegrees
         rotation += std::copysign(0.02, rotation);
     }
 
+    // Strafe and rotate
+    //Only rotation per the Brady, 
+    pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, 0.0_m}, rotation, true, true);
+
+    // Strafe and Rotate separate commands for PID tuning
+    // These two functionalities absolutely CANNOT be tuned together
+    // These motions conflict with each other not allowing the behaviors to individually show 
+    //pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, units::meter_t{strafe}}, 0.0, true, true);
+    //pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, 0.0_m}, rotation, true, true);
+
+   
+
+    // Throwing values on the dashboard for troubleshooting or general info
+    SmartDashboard::PutNumber("Limelight Primary Tag ID", primaryTrackedId);
+    SmartDashboard::PutNumber("Limelight targetX", targetX);
+    SmartDashboard::PutNumber("Limelight raw strafe: ", strafe);
     SmartDashboard::PutNumber("Limelight strafe: ", strafe);
     SmartDashboard::PutNumber("Limelight rotation: ", rotation);
+}
 
-    // Strafe or rotate
-    // Disable rotation until it can be tuned.
-    pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, units::meter_t{strafe}}, 0.0, true, true);
 
-    // Utilize distance to adjust the shooter hood
-    // mainly just grabbing distance for now, this will need to be tested in increments and then a ratio or something in place 
 
-    /*
-    // Get the x-axis target value
+////////////////////////////////////////////////////////////////
+/// @method RobotCamera::BangBangController
+///
+/// This is a relatively basic controller for autonomous 
+/// alignment via april tags
+///
+/// This method does not require a limelight with april tag
+/// capabilities. I.e. any limelight before 4 
+///
+////////////////////////////////////////////////////////////////
+void RobotCamera::BangBangController()
+{
+    // Make sure the robot object has been created (the thread will start running very early)
+    ArgonautRobot * pRobotObj = ArgonautRobot::GetRobotInstance();
+    if (pRobotObj == nullptr)
+    {
+        return;
+    }
+
     double targetX = m_pLimelightNetworkTable->GetNumber("tx", 0.0);
 
     // tx is reported in degrees (LL2: -30:0:+30)
@@ -250,7 +308,6 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve(double currentYawDegrees
         // No movement required
         pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, 0.0_m}, 0.0, true, true);
     }
-    */
 }
 
 
@@ -379,7 +436,26 @@ void RobotCamera::LimelightThread()
 
     // The limelight camera mode will be set by autonomous or teleop
     //9-11 and 25-27 
-    m_TargetAprilTagId = (ArgonautRobot::GetRobotInstance()->m_AllianceColor.value() == DriverStation::Alliance::kRed) ? 10U : 25U;
+    // m_TargetAprilTagId = (ArgonautRobot::GetRobotInstance()->m_AllianceColor.value() == DriverStation::Alliance::kRed) ? 10U : 25U;
+
+    //Breaking this down from the ? above
+    // This is extremely wrong, but it works 
+    /*
+    if (ArgonautRobot::GetRobotInstance()->m_AllianceColor.value() == DriverStation::Alliance::kRed)
+    {
+        m_TargetAprilTagId = 9, 10, 11;
+    }
+    else if (ArgonautRobot::GetRobotInstance()->m_AllianceColor.value() == DriverStation::Alliance::kBlue)
+    {
+        m_TargetAprilTagId = 25, 26, 27;
+    }
+    else 
+    {
+        m_TargetAprilTagId = 1U, 2U, 3U, 5U;
+    }
+    */
+
+    /*
     static SendableChooser<int> limelightIdChooser;
     limelightIdChooser.SetDefaultOption("Alliance Hub", m_TargetAprilTagId);
     limelightIdChooser.AddOption("1", 1);
@@ -387,24 +463,20 @@ void RobotCamera::LimelightThread()
     limelightIdChooser.AddOption("9", 9);
     limelightIdChooser.AddOption("26", 26);
     SmartDashboard::PutData("Limelight Target ID", &limelightIdChooser);
+    */
 
 
     // Setting constants for the vision strafe controller
     m_VisionPid.SetSetpoint(0.0);                   // target centered
     m_VisionPid.SetTolerance(1.5);                  // tolerance in degrees
     m_VisionPid.EnableContinuousInput(-27.0, 27.0); // Limelight field of view (verify)
-
-    //Setting constants for the vision rotate controller 
-    m_VisionRotatePid.SetSetpoint(0.0);             //set up to rotate straight on, may need altered for a range 
-    m_VisionRotatePid.SetTolerance(5.0);            //Assuming this doesn't need to always be straight on 
-    m_VisionRotatePid.EnableContinuousInput(0,360); //Currently set for 0 to 360
     
     while (true)
     {
         // Be sure to relinquish the CPU when done
         std::this_thread::sleep_for(std::chrono::milliseconds(CAMERA_THREAD_SLEEP_TIME_MS));
         SmartDashboard::PutNumber("Limelight heartbeat", m_pLimelightNetworkTable->GetNumber("hb", 0.0));
-        m_pLimelightNetworkTable->PutNumber("priorityid", limelightIdChooser.GetSelected());
+       // m_pLimelightNetworkTable->PutNumber("priorityid", limelightIdChooser.GetSelected());
     }
 }
 

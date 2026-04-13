@@ -698,7 +698,10 @@ void ArgonautRobot::ShooterSequence()
     //These distances will be measured to provide a slight range so it's not continuously adjusting
 
     //Getting distance from the robotcamera thingy
-    //double estimatedDistance = RobotCamera::GetDistanceFromTarget();
+    double estimatedDistance = RobotCamera::GetDistanceFromTarget();
+    SmartDashboard::PutNumber("Distance from Target", estimatedDistance);
+
+    // Changing whether or not we're passing vs shooting
 
     // Check for a request to change the hood position (outside of passing, which is fixed)
     static bool bHoodAtMidRangePosition = false;

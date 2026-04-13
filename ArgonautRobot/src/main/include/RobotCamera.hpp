@@ -95,6 +95,9 @@ public:
         static constexpr double INTEGRAL_SUM_LIMIT_VALUE = 10000.0;
     };
     
+    // Basic bang bang controller for autonomous alignment 
+    static void BangBangController();
+
     // Set whether or not full vision processing can occur
     inline static void SetFullProcessing(bool bState);
     
