@@ -76,6 +76,9 @@ ArgonautRobot::ArgonautRobot() :
     m_bRioPinsStable                    (false),
     m_bIntakeSequenceActive             (false),
     m_bShootSequenceActive              (false),
+    m_bPassing                          (false),
+    m_PassSpeed                         (SHOOTER_PASSING_MOTOR_SPEED),
+    m_ShootSpeed                        (SHOOTER_MOTOR_SPEED),
     m_HoodAngleDegrees                  (0.0_deg),
     m_HeartBeat                         (0U)
 {
@@ -511,6 +514,7 @@ void ArgonautRobot::TeleopPeriodic()
     
     CameraSequence();
 
+    CheckForManualAdjust();
     UpdateSmartDashboard();
 }
 
@@ -619,6 +623,46 @@ void ArgonautRobot::UpdateSmartDashboard()
 
 
 
+void ArgonautRobot::CheckForManualAdjust()
+{
+    if (m_pAuxController->GetButtonState(MANUAL_ADJUST_BUTTON))
+    {
+        if (m_bPassing)
+        {
+            if (m_pAuxController->DetectPovChange(MANUAL_ADJUST_UP_POV))
+            {
+                m_PassSpeed += SHOOT_OR_PASS_MANUAL_ADJUST_STEP_VALUE;
+            }
+            else if (m_pAuxController->DetectPovChange(MANUAL_ADJUST_DOWN_POV))
+            {
+                m_PassSpeed -= SHOOT_OR_PASS_MANUAL_ADJUST_STEP_VALUE;
+            }
+            else
+            {
+            }
+        }
+        else
+        {
+            if (m_pAuxController->DetectPovChange(MANUAL_ADJUST_UP_POV))
+            {
+                m_ShootSpeed += SHOOT_OR_PASS_MANUAL_ADJUST_STEP_VALUE;
+            }
+            else if (m_pAuxController->DetectPovChange(MANUAL_ADJUST_DOWN_POV))
+            {
+                m_ShootSpeed -= SHOOT_OR_PASS_MANUAL_ADJUST_STEP_VALUE;
+            }
+            else
+            {
+            }
+        }
+    }
+
+    SmartDashboard::PutNumber("Pass speed", m_PassSpeed);
+    SmartDashboard::PutNumber("Shoot speed", m_ShootSpeed);
+}
+
+
+
 //////////////////////////////////////////////////////////////////
 /// @method ArgonautRobot::IntakeSequence
 ///
@@ -712,14 +756,13 @@ void ArgonautRobot::ShooterSequence()
     }
 
     // Check for a request to change passing state
-    static bool bPassing = false;
     if (m_pAuxController->DetectButtonChange(PASSING_SHOOTING_CHANGE))
     {
-        bPassing = !bPassing;
+        m_bPassing = !m_bPassing;
     }
 
     // Set the hood angle based on current state
-    m_HoodAngleDegrees = bPassing ? HOOD_PASSING_ANGLE_DEGREES : (bHoodAtMidRangePosition ? HOOD_SHOOT_MID_RANGE_ANGLE_DEGREES : HOOD_START_OR_TOWER_ANGLE_DEGREES);
+    m_HoodAngleDegrees = m_bPassing ? HOOD_PASSING_ANGLE_DEGREES : (bHoodAtMidRangePosition ? HOOD_SHOOT_MID_RANGE_ANGLE_DEGREES : HOOD_START_OR_TOWER_ANGLE_DEGREES);
     m_pShooterHood->SetPositionVoltage(m_HoodAngleDegrees.value());
     SmartDashboard::PutNumber("Hood target", m_HoodAngleDegrees.value());
     units::angle::degree_t hoodCanCoderDegrees = m_pHoodCanCoder->GetAbsolutePosition().GetValue();
@@ -727,7 +770,7 @@ void ArgonautRobot::ShooterSequence()
 
     // Shooter motors speed change based on passing
     static double shooterMotorSpeed = 0.0;
-    shooterMotorSpeed = bPassing ? SHOOTER_PASSING_MOTOR_SPEED : SHOOTER_MOTOR_SPEED;
+    shooterMotorSpeed = m_bPassing ? m_PassSpeed : m_ShootSpeed;
 
     // Allow a manual pre-shot ramp up
     static bool bPreShoot = false;
@@ -763,6 +806,7 @@ void ArgonautRobot::ShooterSequence()
             // Turn on motors for fuel movement
             m_pHopperFeed->SetDutyCycle(HOPPER_FEED_MOTOR_SPEED);
             m_pShooterFeed->SetDutyCycle(SHOOTER_FEED_MOTOR_SPEED);
+            m_pShooterMotors->Set(shooterMotorSpeed); // Just in case a manual change happened
         }
         else
         {
@@ -786,19 +830,24 @@ void ArgonautRobot::ShooterSequence()
         }
     }
 
-    if (bShotInProgress)
+    // Only update LED state if the auto align is not in progress.
+    // (It sets the LEDs to a state for debug information.)
+    if (!m_bCameraAlignInProgress)
     {
-        m_pCandle->SetControl(m_FireAnimation);
-        //m_pCandle->SetControl(controls::StrobeAnimation{0, NUMBER_OF_LEDS - 1}.WithColor({ARGONAUT_LED_COLOR}));
-    }
-    else
-    {
-        m_pCandle->SetControl(m_EmptyAnimation);
-        SetLedsToAllianceColor();
+        if (bShotInProgress)
+        {
+            m_pCandle->SetControl(m_FireAnimation);
+            //m_pCandle->SetControl(controls::StrobeAnimation{0, NUMBER_OF_LEDS - 1}.WithColor({ARGONAUT_LED_COLOR}));
+        }
+        else
+        {
+            m_pCandle->SetControl(m_EmptyAnimation);
+            SetLedsToAllianceColor();
+        }
     }
 
     SmartDashboard::PutNumber("Shooter RPM", m_pShooterMotors->GetMotorObject()->GetVelocity().GetValue().value());
-    SmartDashboard::PutBoolean("Passing?", bPassing);
+    SmartDashboard::PutBoolean("Passing?", m_bPassing);
     SmartDashboard::PutBoolean("Hood at mid range?", bHoodAtMidRangePosition);
 }
 

@@ -233,6 +233,7 @@ private:
     void IntakeSequence();          //deals with piece manipulation, intake configuration
     void ShooterSequence();         //anything that has to deal with the mechanical operation of the shooter
     void WaitForSensorConfig();     //ensuring the sensors have time to stabilize prior to operation 
+    void CheckForManualAdjust();
     
     // MEMBER VARIABLES
     
@@ -317,6 +318,9 @@ private:
     bool                            m_bCameraAlignInProgress;               // Indicates if an automatic camera align is in progress
     bool                            m_bIntakeSequenceActive;                // Keep track of whether or not the intake sequence is active
     bool                            m_bShootSequenceActive;                 // Keep track of whether or not the shoot sequence is active
+    bool                            m_bPassing;                             // Indicates if pass or shoot is desired
+    double                          m_PassSpeed;                            // Keep track of the current passing motor speed
+    double                          m_ShootSpeed;                           // Keep track of the current shoot motor speed
     units::angle::degree_t          m_HoodAngleDegrees;                     // Keep track of the hood position
     uint32_t                        m_HeartBeat;                            // Incremental counter to indicate the robot code is executing
     
@@ -350,10 +354,12 @@ private:
     static const int                INTAKE_PIVOT_DOWN_BUTTON                = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.LEFT_BUMPER;
     static const int                SHOOT_AXIS                              = AUX_CONTROLLER_MAPPINGS->AXIS_MAPPINGS.LEFT_TRIGGER;
     static const int                PRE_SHOOT_AXIS                          = AUX_CONTROLLER_MAPPINGS->AXIS_MAPPINGS.RIGHT_TRIGGER;
+    static const int                MANUAL_ADJUST_TOGGLE_BUTTON             = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.START;
+    static const int                MANUAL_ADJUST_BUTTON                    = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.START;
     static const int                ESTOP_BUTTON                            = AUX_CONTROLLER_MAPPINGS->BUTTON_MAPPINGS.NO_BUTTON;
 
-    static const Argonaut::Controller::PovDirections  HOOD_ADJUST_UP_POV                = Argonaut::Controller::PovDirections::POV_UP;
-    static const Argonaut::Controller::PovDirections  HOOD_ADJUST_DOWN_POV              = Argonaut::Controller::PovDirections::POV_DOWN;
+    static const Argonaut::Controller::PovDirections  MANUAL_ADJUST_UP_POV              = Argonaut::Controller::PovDirections::POV_UP;
+    static const Argonaut::Controller::PovDirections  MANUAL_ADJUST_DOWN_POV            = Argonaut::Controller::PovDirections::POV_DOWN;
 
     // CAN Signals
     // Note: Remember to check the CAN IDs in use in SwerveDrive.hpp.
@@ -417,6 +423,7 @@ private:
     static constexpr const double SHOOTER_FEED_MOTOR_SPEED                              = 0.70;
     static constexpr const double SHOOTER_MOTOR_SPEED                                   = 0.65;
     static constexpr const double SHOOTER_PASSING_MOTOR_SPEED                           = 0.85;
+    static constexpr const double SHOOT_OR_PASS_MANUAL_ADJUST_STEP_VALUE                = 0.05;
     
     // Misc
     const std::string               AUTO_NO_ROUTINE_STRING                  = "No autonomous routine";
