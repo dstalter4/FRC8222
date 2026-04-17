@@ -122,6 +122,10 @@ void ArgonautRobot::AutonomousPeriodic()
     
     // One shot through autonomous is over, indicate as such.
     ArgonautRobotAutonomous::bAutonomousExecutionComplete = true;
+
+    // Capture a rewind session from the limelight
+    RobotCamera::TriggerLimelightRewindCapture(30.0_s);
+
     
     /*
     // Idle until auto is terminated

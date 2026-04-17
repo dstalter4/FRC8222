@@ -186,6 +186,8 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve(double currentYawDegrees
         return;
     }
 
+    bool bIsAutonomousMode = DriverStation::IsAutonomous();
+
     // reading limelight data from network tables
     double targetX = m_pLimelightNetworkTable->GetNumber("tx", 0.0);
 
@@ -197,24 +199,42 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve(double currentYawDegrees
     double rotationSetpoint = 0.0;
 
     //Go to the set angle for the position of the robot, if right/center/left, go to specific setpoint
-    if ((primaryTrackedId == 3U) || (primaryTrackedId == 9U) || (primaryTrackedId == 24U) || (primaryTrackedId == 1U))
+    // tracking 1 and 3 are only for use when practicing at magnet
+    bool bTracking = true;
+    RGBWColor ledColor;
+    if ((primaryTrackedId == 3U) || (primaryTrackedId == 8U) || (primaryTrackedId == 24U) || (primaryTrackedId == 1U))
     {
         //left
         rotationSetpoint = -40.0;
+        //green
+        ledColor = {0, 255, 0, 0};
     }
+    // tracking 2 is only for use when practicing at magnet
     else if ((primaryTrackedId == 2U) || (primaryTrackedId == 11U) || (primaryTrackedId == 27U))
     {
         //right
         rotationSetpoint = 40.0;
+        //purple
+        ledColor = {255, 0, 255, 0};
     }
+    // tracking 5 is only for use when practicing at magnet
     else if ((primaryTrackedId == (5U)) || (primaryTrackedId ==(10U)) || (primaryTrackedId == (26U)))
     {
         //center
         rotationSetpoint = 0.0;
+        //white
+        ledColor = {255, 255, 255, 0};
     }
     else
     {
+        // No active target, don't move
+        bTracking = false;
+        //off
+        ledColor = {0, 0, 0, 0};
     }
+
+    // Set the LEDs to indicate what is happening
+    pRobotObj->m_pCandle->SetControl(pRobotObj->m_LedStripSolidColor.WithColor(ledColor));
 
     static int lastID = -1;
 
@@ -249,9 +269,16 @@ void RobotCamera::AutonomousCamera::AlignToTargetSwerve(double currentYawDegrees
         rotation += std::copysign(0.02, rotation);
     }
 
-    // Strafe and rotate
-    //Only rotation per the Brady, 
-    pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, 0.0_m}, rotation, true, true);
+    if (bTracking && !bIsAutonomousMode)
+    {
+        // Strafe and rotate
+        //Only rotation per the Brady, 
+        pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, 0.0_m}, rotation, true, true);
+    }
+    else
+    {
+        pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, 0.0_m}, 0.0, true, true);
+    }
 
     // Strafe and Rotate separate commands for PID tuning
     // These two functionalities absolutely CANNOT be tuned together
@@ -308,6 +335,25 @@ void RobotCamera::BangBangController()
         // No movement required
         pRobotObj->m_pSwerveDrive->SetModuleStates({0.0_m, 0.0_m}, 0.0, true, true);
     }
+}
+
+
+
+void RobotCamera::TriggerLimelightRewindCapture(units::time::second_t numberOfSeconds)
+{
+    // Read the rewind info
+    std::vector<double> currentArray;
+    currentArray = m_pLimelightNetworkTable->GetNumberArray("capture_rewind", currentArray);
+
+    // Retrieve the current counter value
+    double counter = (currentArray.empty()) ? 0 : currentArray[0];
+
+    // Build the array to send back over to the limelight
+    static constexpr const double LIMELIGHT_REWIND_MAX_CAPTURE_TIME_S = 165.0;
+    std::array<double, 2> entries;
+    entries[0] = counter + 1;
+    entries[1] = std::min(numberOfSeconds.value(), LIMELIGHT_REWIND_MAX_CAPTURE_TIME_S);
+    m_pLimelightNetworkTable->PutNumberArray("capture_rewind", entries);
 }
 
 
@@ -433,6 +479,9 @@ void RobotCamera::LimelightThread()
     {
         wpi::PortForwarder::GetInstance().Add(port, "limelight.local", port);
     }
+
+    // Enable rewind
+    m_pLimelightNetworkTable->PutNumber("rewind_enable_set", 1);
 
     // The limelight camera mode will be set by autonomous or teleop
     //9-11 and 25-27 

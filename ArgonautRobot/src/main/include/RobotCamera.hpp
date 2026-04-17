@@ -115,7 +115,9 @@ public:
 
     // Set the state of the limelight LED array
     inline static void SetLimelightLedMode(LimelightLedMode ledMode);
-    
+
+    static void TriggerLimelightRewindCapture(units::time::second_t numberOfSeconds);
+
     // Toggle between what processed image is shown on the dashboard
     static void ToggleCameraProcessedImage();
     

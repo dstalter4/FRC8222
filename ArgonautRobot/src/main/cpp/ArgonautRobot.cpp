@@ -835,6 +835,11 @@ void ArgonautRobot::CameraSequence()
     {
         m_bCameraAlignInProgress = false;
     }
+
+    if (m_pDriveController->DetectButtonChange(LIMELIGHT_CAPTURE_REWIND_BUTTON) || (DriverStation::IsFMSAttached() && (DriverStation::GetMatchTime() < 2.0_s)))
+    {
+        RobotCamera::TriggerLimelightRewindCapture(160.0_s);
+    }
 }
 
 
