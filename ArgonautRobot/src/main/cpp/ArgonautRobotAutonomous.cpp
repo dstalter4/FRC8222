@@ -9,7 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 // SYSTEM INCLUDES
-// <none>
+#include <frc2/command/CommandScheduler.h>      // for scheduling commands
 
 // C INCLUDES
 // (none)
@@ -17,10 +17,11 @@
 // C++ INCLUDES
 #include "ArgonautRobot.hpp"                // for robot class declaration
 #include "ArgonautRobotAutonomous.hpp"      // for autonomous declarations
-#include "RobotCamera.hpp"                  // for interacting with cameras
+#include "RobotUtils.hpp"                       // for DisplayMessage()
 
 // NAMESPACE DATA
 bool ArgonautRobotAutonomous::bAutonomousExecutionComplete;
+std::optional<CommandPtr> AutonomousCommand;
 
 
 ////////////////////////////////////////////////////////////////
@@ -39,14 +40,31 @@ void ArgonautRobot::AutonomousInit()
     
     // Indicate the autonomous routine has not executed yet
     ArgonautRobotAutonomous::bAutonomousExecutionComplete = false;
-    
-    m_pSafetyTimer->Stop();
-    m_pSafetyTimer->Reset();
-    
-    // Autonomous needs full camera processing
-    RobotCamera::SetFullProcessing(true);
-    RobotCamera::SetLimelightMode(RobotCamera::LimelightMode::VISION_PROCESSOR);
-    RobotCamera::SetLimelightLedMode(RobotCamera::LimelightLedMode::ARRAY_ON);
+
+    if (ArgonautRobotAutonomous::USE_COMMAND_BASED_AUTONOMOUS)
+    {
+        RobotUtils::DisplayMessage("Autonomous init - command based.");
+
+        // Scheduled commands must have non-local scope!
+        // Otherwise the scheduler does not continue to see them.
+        AutonomousCommand = AutonomousTestCommandDashboardRoutine();
+        //AutonomousCommand = AutonomousTestCommandMotionRoutine();
+        //AutonomousCommand = AutonomousTestTrajectoryRoutine();
+
+        if (AutonomousCommand.has_value())
+        {
+            RobotUtils::DisplayMessage("Autonomous init - command scheduled.");
+            CommandScheduler::GetInstance().Schedule(AutonomousCommand.value());
+        }
+        else
+        {
+            RobotUtils::DisplayMessage("Autonomous init - command NOT scheduled.");
+        }
+    }
+    else
+    {
+        RobotUtils::DisplayMessage("Autonomous init - time based.");
+    }
 }
 
 
@@ -66,7 +84,43 @@ void ArgonautRobot::AutonomousPeriodic()
 {
     // Log a mode change if one occurred
     CheckAndUpdateRobotMode(ROBOT_MODE_AUTONOMOUS);
-    
+
+    if (ArgonautRobotAutonomous::USE_COMMAND_BASED_AUTONOMOUS)
+    {
+        AutonomousPeriodicCommand();
+    }
+    else
+    {
+        AutonomousPeriodicTimed();
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////
+/// @method ArgonautRobot::AutonomousPeriodicCommand
+///
+/// Main workflow for command based autonomous routines.
+///
+////////////////////////////////////////////////////////////////
+void ArgonautRobot::AutonomousPeriodicCommand()
+{
+    // Update the swerve odometry and run the command scheduler
+    // @todo: The odometry updates may be causing drift
+    m_pSwerveDrive->UpdateOdometry();
+    CommandScheduler::GetInstance().Run();
+}
+
+
+
+////////////////////////////////////////////////////////////////
+/// @method ArgonautRobot::AutonomousPeriodicTimed
+///
+/// Main workflow for time based autonomous routines.
+///
+////////////////////////////////////////////////////////////////
+void ArgonautRobot::AutonomousPeriodicTimed()
+{    
     if (ArgonautRobotAutonomous::bAutonomousExecutionComplete)
     {
         return;
@@ -104,6 +158,12 @@ void ArgonautRobot::AutonomousPeriodic()
         RobotUtils::DisplayMessage("Auto routine 3.");
         AutonomousRoutine3();
     }
+    
+    // No autonomous routine
+    else if (selectedAutoRoutineString == AUTO_NO_ROUTINE_STRING)
+    {
+        RobotUtils::DisplayMessage("No autonomous routine.");
+    }
 
     /* !!! ONLY ENABLE TEST AUTONOMOUS CODE WHEN TESTING
            SELECT A FUNCTIONING ROUTINE FOR ACTUAL MATCHES !!! */
@@ -122,10 +182,6 @@ void ArgonautRobot::AutonomousPeriodic()
     
     // One shot through autonomous is over, indicate as such.
     ArgonautRobotAutonomous::bAutonomousExecutionComplete = true;
-
-    // Capture a rewind session from the limelight
-    RobotCamera::TriggerLimelightRewindCapture(30.0_s);
-
     
     /*
     // Idle until auto is terminated

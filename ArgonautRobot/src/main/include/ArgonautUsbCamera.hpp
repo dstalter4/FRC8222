@@ -1,24 +1,22 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @file   RobotCamera.hpp
+/// @file   ArgonautUsbCamera.hpp
 /// @author David Stalter
 ///
 /// @details
-/// A class designed to support camera functionality on the robot.
+/// A class designed to support USB camera functionality on the robot.
 ///
 /// Copyright (c) 2026 Argonaut
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef ROBOTCAMERA_HPP
-#define ROBOTCAMERA_HPP
+#ifndef ARGONAUTUSBCAMERA_HPP
+#define ARGONAUTUSBCAMERA_HPP
 
 // SYSTEM INCLUDES
 // <none>
 
 // C INCLUDES
-#include "frc/controller/PIDController.h"       // for utilizing WPIlib PID controller
 #include "frc/smartdashboard/SmartDashboard.h"  // for smart dashboard support
 #include "frc/Timer.h"                          // for creating a Timer
-#include "networktables/NetworkTable.h"         // for interacting with network tables
 
 // C++ INCLUDES
 #include "RobotUtils.hpp"                       // for DisplayMessage()
@@ -32,18 +30,20 @@ ENABLE_WARNING("-Wdeprecated-enum-enum-conversion")
 #include "opencv2/core/types.hpp"
 
 // Indirectly includes opencv stuff, must happen after the warning disable/enable
-#include "cameraserver/CameraServer.h"          // for camera support
+#include "cameraserver/CameraServer.h"
 
 using namespace frc;
 
 
 ////////////////////////////////////////////////////////////////
-/// @class RobotCamera
+/// @class ArgonautUsbCamera
 ///
-/// Class that provides methods for interacting with the camera.
+/// Class that provides methods for interacting with USB cameras.
+/// Note: A lot of this is legacy code that has not been used
+///       for a long time.
 ///
 ////////////////////////////////////////////////////////////////
-class RobotCamera
+class ArgonautUsbCamera
 {
 public:
     
@@ -53,22 +53,6 @@ public:
         FRONT_USB,
         BACK_USB,
         MAX_NUM_USB_CAMERAS
-    };
-
-    enum LimelightMode
-    {
-        // Values taken from the limelight documentation
-        VISION_PROCESSOR    = 0,
-        DRIVER_CAMERA       = 1
-    };
-
-    enum LimelightLedMode
-    {
-        // Values taken from the limelight documentation
-        PIPELINE            = 0,
-        ARRAY_OFF           = 1,
-        ARRAY_BLINK         = 2,
-        ARRAY_ON            = 3
     };
     
     // A structure for autonomous camera seeking operations
@@ -82,7 +66,6 @@ public:
         };
 
         static bool AlignToTarget(SeekDirection seekDirection, const bool bEnableMotors = true);
-        static void AlignToTargetSwerve(double currentYawDegrees);
 
     private:
         static Timer m_AutoCameraTimer;
@@ -95,9 +78,6 @@ public:
         static constexpr double INTEGRAL_SUM_LIMIT_VALUE = 10000.0;
     };
     
-    // Basic bang bang controller for autonomous alignment 
-    static void BangBangController();
-
     // Set whether or not full vision processing can occur
     inline static void SetFullProcessing(bool bState);
     
@@ -106,40 +86,20 @@ public:
     
     // Toggle between cameras
     inline static void ToggleCamera();
-
-    // Set the limelight mode
-    inline static void SetLimelightPipeline(int32_t pipelineNum);
-
-    // Set the limelight mode
-    inline static void SetLimelightMode(LimelightMode mode);
-
-    // Set the state of the limelight LED array
-    inline static void SetLimelightLedMode(LimelightLedMode ledMode);
-
-    static void TriggerLimelightRewindCapture(units::time::second_t numberOfSeconds);
-
+    
     // Toggle between what processed image is shown on the dashboard
     static void ToggleCameraProcessedImage();
     
-    // Getting calculated distance via trig
-    static double GetDistanceFromTarget();
-
     // The vision thread itself
-    static void VisionThread();
-    
-    // Vision thread for using a limelight camera
-    static void LimelightThread();
-
-    // Release the vision processing thread
-    inline static void ReleaseThread();
+    static void UsbVisionThread();
 
 private:
-    
-    // Create the camera objects for any configured cameras
-    static bool CreateConfiguredCameras();
 
     // Update values on the SmartDashboard
     static void UpdateSmartDashboard();
+
+    // Create the camera objects for any configured cameras
+    static bool CreateConfiguredCameras();
 
     // Process a mat through the vision pipeline
     static void ProcessImage();
@@ -157,13 +117,13 @@ private:
     static void CalculateReflectiveTapeValues();
 
     // Constructor
-    RobotCamera();
+    ArgonautUsbCamera();
 
     // Destructor, copy constructor, assignment operator
-    ~RobotCamera();
+    ~ArgonautUsbCamera();
 
-    RobotCamera(const RobotCamera &) = delete;
-    RobotCamera & operator=(const RobotCamera &) = delete;
+    ArgonautUsbCamera(const ArgonautUsbCamera &) = delete;
+    ArgonautUsbCamera & operator=(const ArgonautUsbCamera &) = delete;
     
     // MEMBER VARIABLES
     
@@ -193,8 +153,6 @@ private:
     };
 
     // A structure to hold information about a USB camera.
-    // If Axis camera support is ever needed, this
-    // will probably have to derive from a base class.
     struct UsbCameraInfo
     {
         cs::UsbCamera       m_UsbCam;                       // The camera object
@@ -246,10 +204,6 @@ private:
     };
     
     // Camera related variables
-    static int                                  m_TargetAprilTagId;                 // Track which AprilTag to target
-    static PIDController                        m_VisionPid;                        // PID controller for automated vision targeting, specifically for strafe
-    static PIDController                        m_VisionRotatePid;                  // PID controller for automated vision targeting, rotation
-    static std::shared_ptr<nt::NetworkTable>    m_pLimelightNetworkTable;           // Network table for the limelight camera
     static UsbCameraStorage                     m_UsbCameras;                       // Memory for storing the USB camera objects
     static UsbCameraInfo *                      m_pCurrentUsbCamera;                // Pointer to the currently selected USB camera object   
     static cs::CvSource                         m_CameraOutput;                     // Output source for processed images
@@ -272,7 +226,6 @@ private:
     // Misc
     static std::vector<VisionTargetReport>      m_ContourTargetReports;             // Stores information about the contours currently visible
     static VisionTargetReport                   m_VisionTargetReport;               // Information about the vision target
-    static bool                                 m_bThreadReleased;                  // Indicates whether the main robot program has released the vision thread
     static bool                                 m_bDoFullProcessing;                // Indicates whether or not full image processing should occur
     static unsigned                             m_CameraHeartBeat;                  // Keep alive for the camera thread
     
@@ -282,109 +235,18 @@ private:
     static const bool                           FRONT_USB_CAMERA_SUPPORTED          = true;
     static const bool                           BACK_USB_CAMERA_SUPPORTED           = false;
     static const char *                         CAMERA_OUTPUT_NAME;
-    
-    static constexpr double                     TARGET_WIDTH_INCHES                 =  2.0;
-    static constexpr double                     TARGET_HEIGHT_INCHES                = 16.0;
-    static constexpr double                     TARGET_HEIGHT_FROM_GROUND           =  2.0;
-    //static constexpr double                     TARGET_MIN_AREA_PERCENT             = 0.0;
-    //static constexpr double                     TARGET_MAX_AREA_PERCENT             = 100.0;
-    //static constexpr double                     TARGET_RANGE_MIN                    = 132.0;
-    //static constexpr double                     TARGET_RANGE_MAX                    = 192.0;
-    //static constexpr double                     GROUND_DISTANCE_TOLERANCE           = 6.0;
-    static constexpr double                     CAMERA_FOV_DEGREES                  = 50.0;
-    static constexpr double                     CAMERA_DIAGONAL_FOV_DEGREES         = 78.0;
-    static constexpr double                     CALIBRATED_CAMERA_ANGLE             = 21.5778173;
-    static constexpr double                     DEGREES_TO_RADIANS                  = M_PI / 180.0;
-    static constexpr double                     DECIMAL_TO_PERCENT                  = 100.0;
 };
 
 
 
 ////////////////////////////////////////////////////////////////
-/// @method RobotCamera::ReleaseThread
-///
-/// Releases the vision processing thread for further
-/// initialization.  The vision thread is created from the robot
-/// constructor, so some things may not be fully initialized
-/// before it executes.  Use this to have the robot program
-/// dictate when it is safe to continue.
-///
-////////////////////////////////////////////////////////////////
-inline void RobotCamera::ReleaseThread()
-{
-    m_bThreadReleased = true;
-}
-
-
-
-////////////////////////////////////////////////////////////////
-/// @method RobotCamera::SetLimelightPipeline
-///
-/// This method sets the pipeline used by the limelight camera.
-///
-////////////////////////////////////////////////////////////////
-inline void RobotCamera::SetLimelightPipeline(int32_t pipelineNum)
-{
-    if (m_pLimelightNetworkTable.get() != nullptr)
-    {
-        m_pLimelightNetworkTable->PutNumber("pipeline", pipelineNum);
-    }
-    else
-    {
-        RobotUtils::DisplayFormattedMessage("Limelight network table unavailble.  Pipeline %d not set!\n", pipelineNum);
-    }
-}
-
-
-
-////////////////////////////////////////////////////////////////
-/// @method RobotCamera::SetLimelightMode
-///
-/// This method sets the mode of the limelight camera.
-///
-////////////////////////////////////////////////////////////////
-inline void RobotCamera::SetLimelightMode(LimelightMode mode)
-{
-    if (m_pLimelightNetworkTable.get() != nullptr)
-    {
-        m_pLimelightNetworkTable->PutNumber("camMode", static_cast<int>(mode));
-    }
-    else
-    {
-        RobotUtils::DisplayFormattedMessage("Limelight network table unavailble.  Camera mode %d not set!\n", static_cast<int>(mode));
-    }
-}
-
-
-
-////////////////////////////////////////////////////////////////
-/// @method RobotCamera::SetLimelightLedMode
-///
-/// This method sets the mode of the limelight camera.
-///
-////////////////////////////////////////////////////////////////
-inline void RobotCamera::SetLimelightLedMode(LimelightLedMode ledMode)
-{
-    if (m_pLimelightNetworkTable.get() != nullptr)
-    {
-        m_pLimelightNetworkTable->PutNumber("ledMode", static_cast<int>(ledMode));
-    }
-    else
-    {
-        RobotUtils::DisplayFormattedMessage("Limelight network table unavailble.  Led mode %d not set!\n", static_cast<int>(ledMode));
-    }
-}
-
-
-
-////////////////////////////////////////////////////////////////
-/// @method RobotCamera::SetFullProcessing
+/// @method ArgonautUsbCamera::SetFullProcessing
 ///
 /// This method sets whether or not full vision processing
 /// should occur.
 ///
 ////////////////////////////////////////////////////////////////
-inline void RobotCamera::SetFullProcessing(bool bState)
+inline void ArgonautUsbCamera::SetFullProcessing(bool bState)
 {
     m_bDoFullProcessing = bState;
     
@@ -400,12 +262,12 @@ inline void RobotCamera::SetFullProcessing(bool bState)
 
 
 ////////////////////////////////////////////////////////////////
-/// @method RobotCamera::SetCamera
+/// @method ArgonautUsbCamera::SetCamera
 ///
 /// This method sets which camera is active.
 ///
 ////////////////////////////////////////////////////////////////
-inline void RobotCamera::SetCamera(CameraType camera)
+inline void ArgonautUsbCamera::SetCamera(CameraType camera)
 {
     // Make sure the camera is present before trying to switch
     if (m_UsbCameras.m_CamerasInfo[camera].m_bIsPresent)
@@ -421,15 +283,15 @@ inline void RobotCamera::SetCamera(CameraType camera)
 
 
 ////////////////////////////////////////////////////////////////
-/// @method RobotCamera::ToggleCamera
+/// @method ArgonautUsbCamera::ToggleCamera
 ///
 /// This method toggles between which camera is active.
 ///
 ////////////////////////////////////////////////////////////////
-inline void RobotCamera::ToggleCamera()
+inline void ArgonautUsbCamera::ToggleCamera()
 {
     CameraType nextCam = (m_pCurrentUsbCamera->CAM_TYPE == FRONT_USB) ? BACK_USB : FRONT_USB;
     SetCamera(nextCam);
 }
 
-#endif // ROBOTCAMERA_HPP
+#endif // ARGONAUTUSBCAMERA_HPP

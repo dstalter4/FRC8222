@@ -37,7 +37,7 @@ uint32_t TalonFxSwerveModule::m_DetailedModuleDisplayIndex = 0U;
 /// on the CANivore bus, which requires a 120 ohm terminating
 /// resistor.
 ///
-/// 2026: Bevels facing right is 1.0 forward on the Talons.
+/// 20xx: Bevels facing right is 1.0 forward on the Talons.
 ///
 ////////////////////////////////////////////////////////////////
 TalonFxSwerveModule::TalonFxSwerveModule(SwerveConfig::ModuleInformation moduleInfo, const std::function<const CANBus&(std::string_view)>& rGetCanBusReferenceLambda) :
@@ -249,6 +249,7 @@ void TalonFxSwerveModule::SetDesiredState(SwerveModuleState desiredState, bool b
     }
     else
     {
+        // @todo: This needs validation (partially works, but max speed is inaccurate).
         units::angular_velocity::turns_per_second_t driveTalonDesiredVelocityTps = units::angular_velocity::turns_per_second_t(SwerveConversions::MpsToRps(desiredState.speed.value(), SwerveConfig::WHEEL_CIRCUMFERENCE));
         m_DriveVelocityVoltage.Velocity = driveTalonDesiredVelocityTps;
         m_DriveVelocityVoltage.FeedForward = m_pFeedForward->Calculate(desiredState.speed);

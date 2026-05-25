@@ -103,9 +103,9 @@ namespace SwerveConfig
     static constexpr double WHEEL_CIRCUMFERENCE = 4.0 * METERS_PER_INCH * M_PI;
 
     // Distance between front/back wheel centers
-    static constexpr const units::meter_t WHEEL_BASE = units::meter_t(21.75 * METERS_PER_INCH);
+    static constexpr const units::meter_t WHEEL_BASE = units::meter_t(0.0 * METERS_PER_INCH);
     // Distance between left/right wheel centers
-    static constexpr const units::meter_t TRACK_WIDTH = units::meter_t(20.25 * METERS_PER_INCH);
+    static constexpr const units::meter_t TRACK_WIDTH = units::meter_t(0.0 * METERS_PER_INCH);
 
     // 14.7638 feet per second (conversion *3.28084), 487.0141 degrees per second (conversion *57.2957795131)
     static constexpr units::meters_per_second_t MAX_DRIVE_VELOCITY_MPS = 4.5_mps;
@@ -129,11 +129,11 @@ namespace SwerveConfig
 
     // Config information on each swerve module.
     // Fields are: Name, Position, Drive TalonFX CAN ID, Angle TalonFX CAN ID, CANCoder ID, Angle Offset, Motor CAN Bus Name, Encoder CAN Bus Name
-    // 2026: Angles measured with bevels facing right.  0.927002, 0.627441, 0.520752, 0.453857
-    static constexpr const SwerveConfig::ModuleInformation FRONT_LEFT_MODULE_INFO = {"Front left", SwerveConfig::ModulePosition::FRONT_LEFT, 11, 12, 21, 333.72072_deg, SwerveConfig::CANIVORE_CAN_BUS_NAME, SwerveConfig::CANIVORE_CAN_BUS_NAME};
-    static constexpr const SwerveConfig::ModuleInformation FRONT_RIGHT_MODULE_INFO = {"Front right", SwerveConfig::ModulePosition::FRONT_RIGHT, 13, 14, 22, 225.87876_deg, SwerveConfig::CANIVORE_CAN_BUS_NAME, SwerveConfig::CANIVORE_CAN_BUS_NAME};
-    static constexpr const SwerveConfig::ModuleInformation BACK_LEFT_MODULE_INFO = {"Back left", SwerveConfig::ModulePosition::BACK_LEFT, 15, 16, 23, 187.47072_deg, SwerveConfig::CANIVORE_CAN_BUS_NAME, SwerveConfig::CANIVORE_CAN_BUS_NAME};
-    static constexpr const SwerveConfig::ModuleInformation BACK_RIGHT_MODULE_INFO = {"Back right", SwerveConfig::ModulePosition::BACK_RIGHT, 17, 18, 24, 163.38852_deg, SwerveConfig::CANIVORE_CAN_BUS_NAME, SwerveConfig::CANIVORE_CAN_BUS_NAME};
+    // 20xx: Angles measured with bevels facing right.
+    static constexpr const ModuleInformation FRONT_LEFT_MODULE_INFO = {"Front left", ModulePosition::FRONT_LEFT, 11, 12, 21, 0.0_deg, CANIVORE_CAN_BUS_NAME, CANIVORE_CAN_BUS_NAME};
+    static constexpr const ModuleInformation FRONT_RIGHT_MODULE_INFO = {"Front right", ModulePosition::FRONT_RIGHT, 13, 14, 22, 0.0_deg, CANIVORE_CAN_BUS_NAME, CANIVORE_CAN_BUS_NAME};
+    static constexpr const ModuleInformation BACK_LEFT_MODULE_INFO = {"Back left", ModulePosition::BACK_LEFT, 15, 16, 23, 0.0_deg, CANIVORE_CAN_BUS_NAME, CANIVORE_CAN_BUS_NAME};
+    static constexpr const ModuleInformation BACK_RIGHT_MODULE_INFO = {"Back right", ModulePosition::BACK_RIGHT, 17, 18, 24, 0.0_deg, CANIVORE_CAN_BUS_NAME, CANIVORE_CAN_BUS_NAME};
 }
 
 #endif // SWERVECONFIG_HPP

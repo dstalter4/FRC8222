@@ -20,7 +20,6 @@
 
 // C++ INCLUDES
 #include "ArgonautRobot.hpp"            // for class declaration (and other headers)
-#include "RobotCamera.hpp"              // for interacting with cameras
 #include "RobotUtils.hpp"               // for Trim(), Limit() and DisplayMessage()
 
 // STATIC MEMBER VARIABLES
@@ -35,55 +34,41 @@ ArgonautRobot * ArgonautRobot::m_pThis;
 ////////////////////////////////////////////////////////////////
 ArgonautRobot::ArgonautRobot() :
     m_AutonomousChooser                 (),
-    m_AutoSwerveDirections              (),
     m_pDriveController                  (new DriveControllerType(DRIVE_CONTROLLER_MODEL, DRIVE_JOYSTICK_PORT)),
     m_pAuxController                    (new AuxControllerType(AUX_CONTROLLER_MODEL, AUX_JOYSTICK_PORT)),
     m_RioCanBus                         (RIO_CAN_BUS_NAME),
     m_CanivoreBus                       (CANIVORE_CAN_BUS_NAME),
     m_pPigeon                           (new Pigeon2(PIGEON_CAN_ID, m_CanivoreBus)),
-    m_pSwerveDrive                      (new SwerveDrive(m_pPigeon, GetCanBusReferenceLambda)),
-    m_pCandle                           (new CANdle(CANDLE_CAN_ID, m_CanivoreBus)),
-    m_LedStripSolidColor                (0, (NUMBER_OF_LEDS - 1)),
-    m_RainbowAnimation                  (0, (NUMBER_OF_LEDS - 1)),
-    m_FireAnimation                     (0, (NUMBER_OF_LEDS * 2)),
-    m_EmptyAnimation                    (0),
+    m_pSwerveDrive                      (new SwerveDrive(m_pPigeon, m_GetCanBusReferenceLambda)),
+    m_pLedController                    (new ArgonautLedController(NUMBER_OF_LEDS, CANDLE_CAN_ID, m_RioCanBus, [this](){return m_AllianceColor.value();})),
     m_pDebugOutput                      (new DigitalOutput(DEBUG_OUTPUT_DIO_CHANNEL)),
     m_pCompressor                       (new Compressor(PneumaticsModuleType::CTREPCM)),
     m_pMatchModeTimer                   (new Timer()),
     m_pRobotProgramTimer                (new Timer()),
-    m_pSafetyTimer                      (new Timer()),
-    m_CameraThread                      (RobotCamera::LimelightThread),
+    m_pLimelightCamera                  (new LimelightCamera(LimelightCamera::LimelightModel::LIMELIGHT_3A, "limelight")),
+    m_bLimelightFound                   (false),
     m_RobotMode                         (ROBOT_MODE_NOT_SET),
     m_AllianceColor                     (DriverStation::GetAlliance()),
     m_bRioPinsStable                    (false),
+    m_bCameraAlignInProgress            (false),
     m_HeartBeat                         (0U)
 {
     RobotUtils::DisplayMessage("Robot constructor.");
-    
+
     // LiveWindow is not used
     LiveWindow::SetEnabled(false);
-    
+
+    // Signal logger is not used
+    SignalLogger::EnableAutoLogging(false);
+
     // Set the autonomous options
+    // @todo: Update these outside the constructor?
     m_AutonomousChooser.SetDefaultOption(AUTO_ROUTINE_1_STRING, AUTO_ROUTINE_1_STRING);
     m_AutonomousChooser.AddOption(AUTO_ROUTINE_2_STRING, AUTO_ROUTINE_2_STRING);
     m_AutonomousChooser.AddOption(AUTO_ROUTINE_3_STRING, AUTO_ROUTINE_3_STRING);
+    m_AutonomousChooser.AddOption(AUTO_NO_ROUTINE_STRING, AUTO_NO_ROUTINE_STRING);
     m_AutonomousChooser.AddOption(AUTO_TEST_ROUTINE_STRING, AUTO_TEST_ROUTINE_STRING);
     SmartDashboard::PutData("Autonomous Modes", &m_AutonomousChooser);
-
-    RobotUtils::DisplayFormattedMessage("The drive forward axis is: %d\n", Argonaut::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.RIGHT_TRIGGER);
-    RobotUtils::DisplayFormattedMessage("The drive reverse axis is: %d\n", Argonaut::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.LEFT_TRIGGER);
-    RobotUtils::DisplayFormattedMessage("The drive left/right axis is: %d\n", Argonaut::Controller::Config::GetControllerMapping(DRIVE_CONTROLLER_MODEL)->AXIS_MAPPINGS.LEFT_X_AXIS);
-
-    CANdleConfiguration candleConfig;
-    candleConfig.LED.StripType = StripTypeValue::GRB;
-    m_pCandle->GetConfigurator().Apply(candleConfig);
-    m_RainbowAnimation.FrameRate = 50_Hz;
-    m_pCandle->SetControl(m_LedStripSolidColor.WithColor(ARGONAUT_LED_COLOR));
-
-    // Spawn the vision thread
-    //RobotCamera::SetLimelightMode(RobotCamera::LimelightMode::DRIVER_CAMERA);
-    //RobotCamera::SetLimelightLedMode(RobotCamera::LimelightLedMode::PIPELINE);
-    m_CameraThread.detach();
 
     // Start the free running timer
     m_pRobotProgramTimer->Reset();
@@ -122,6 +107,11 @@ void ArgonautRobot::RobotInit()
 {
     RobotUtils::DisplayMessage("RobotInit called.");
     SetStaticThisInstance();
+
+    // Attempt to locate the limelight.  The called function has a
+    // search timeout.  If it isn't found, this will have to be
+    // called again later.
+    m_bLimelightFound = m_pLimelightCamera->FindAndSetNetworkTable();
 }
 
 
@@ -142,7 +132,10 @@ void ArgonautRobot::RobotPeriodic()
         bRobotPeriodicStarted = true;
     }
 
+    // @todo: Read and display sensor values for calibration when not enabled
+    // @note: From testing, smart dashboard prints of sensor values do give real time data.
     CheckIfRioPinsAreStable();
+    UpdateSmartDashboard();
 }
 
 
@@ -156,7 +149,6 @@ void ArgonautRobot::RobotPeriodic()
 ////////////////////////////////////////////////////////////////
 void ArgonautRobot::CheckIfRioPinsAreStable()
 {
-/*
     // This is the logic to wait to take PWM based sensor readings until the RIO is ready.
     // The behavior of the RIO is that it measures how many microseconds the signal is high
     // every second.  This requires waiting to get stable readings.
@@ -176,13 +168,14 @@ void ArgonautRobot::CheckIfRioPinsAreStable()
         static constexpr const units::time::second_t RIO_DUTY_CYCLE_ENCODER_STARTUP_DELAY = 2.0_s;
         if ((currentTimeStamp - enabledTimeStamp) > RIO_DUTY_CYCLE_ENCODER_STARTUP_DELAY)
         {
-            // Intake pivor encoder configuration algorithm
-            double encoderValue = m_pIntakePivotEncoder->Get();
-            units::angle::degree_t encoderValueDegrees(encoderValue * ANGLE_360_DEGREES);
-          
+            // Example encoder configuration algorithm
+
+            //double encoderValue = m_pEncoder->Get();
+            //units::angle::degree_t encoderValueDegrees(encoderValue * ANGLE_360_DEGREES);
+
             // This is the delta between the current mechanism position and the desired starting position (or zero point)
-            units::angle::degree_t startingOffsetDegrees = encoderValueDegrees - INTAKE_STARTING_POSITION_DEGREES;
-            std::printf("startingOffsetDegrees (start): %f\n", startingOffsetDegrees.value());
+            //units::angle::degree_t startingOffsetDegrees = encoderValueDegrees - STARTING_POSITION_ENCODER_VALUE;
+            //std::printf("startingOffsetDegrees (start): %f\n", startingOffsetDegrees.value());
 
             // If the starting offset is negative, we crossed over the absolute encoder boundary
             // We give a tolerance of five degrees in case the mechanism is near where we want to start
@@ -196,36 +189,10 @@ void ArgonautRobot::CheckIfRioPinsAreStable()
             //}
 
             // At this point we have the angle we want relative to zero
-            (void)m_pIntakePivot->m_pTalonFx->GetConfigurator().SetPosition(startingOffsetDegrees);
-            std::printf("encoderValue: %f\n", encoderValue);
-            std::printf("encoderValueDegrees: %f\n", encoderValueDegrees.value());
-            std::printf("startingOffsetDegrees (final): %f\n", startingOffsetDegrees.value());
-
-             // Hood encoder configuration algorithm
-
-            encoderValue = m_pHoodEncoder->Get();
-            encoderValueDegrees = units::angle::degree_t(encoderValue * ANGLE_360_DEGREES);
-          
-            // This is the delta between the current mechanism position and the desired starting position (or zero point)
-            startingOffsetDegrees = encoderValueDegrees - HOOD_STARTING_POSITION_DEGREES;
-            std::printf("startingOffsetDegrees (start): %f\n", startingOffsetDegrees.value());
-
-            // If the starting offset is negative, we crossed over the absolute encoder boundary
-            // We give a tolerance of five degrees in case the mechanism is near where we want to start
-            // @todo: Does this need to check for very small readings below zero?
-            // @todo: Boundary conditions here will be difficult
-            //if (startingOffsetDegrees < ENCODER_BOUNDARY_TOLERANCE_DEGREES)
-            //{
-                // the 0/1 boundary is 360, so subtract the starting position to see how many degrees were up to that point
-                // Add in the absolute value of the overage, which was negative
-                //startingOffsetDegrees = (units::angle::degree_t(ANGLE_360_DEGREES) - STARTING_POSITION_ENCODER_VALUE) + encoderValueDegrees;
-            //}
-
-            // At this point we have the angle we want relative to zero
-            (void)m_pShooterHood->m_pTalonFx->GetConfigurator().SetPosition(startingOffsetDegrees);
-            std::printf("encoderValue: %f\n", encoderValue);
-            std::printf("encoderValueDegrees: %f\n", encoderValueDegrees.value());
-            std::printf("startingOffsetDegrees (final): %f\n", startingOffsetDegrees.value());
+            //(void)m_pMotor->GetMotorObject()->GetConfigurator().SetPosition(startingOffsetDegrees);
+            //std::printf("encoderValue: %f\n", encoderValue);
+            //std::printf("encoderValueDegrees: %f\n", encoderValueDegrees.value());
+            //std::printf("startingOffsetDegrees (final): %f\n", startingOffsetDegrees.value());
 
             m_bRioPinsStable = true;
         }
@@ -238,7 +205,6 @@ void ArgonautRobot::CheckIfRioPinsAreStable()
         // m_bRioPinsStable exists for the life of the program.  Once we have a stable
         // reading acquired, we don't need to do it again until the robot program restarts.
     }
-*/
 }
 
 
@@ -260,6 +226,7 @@ void ArgonautRobot::ConfigureMotorControllers()
     // BaseTalonConfiguration constructor with FeedbackDevice::IntegratedSensor.
 
     /*
+    // @todo_phoenix6: Update the example for the new API.
     // Example configuration
     TalonFXConfiguration talonConfig;
     talonConfig.slot0.kP = 0.08;
@@ -282,16 +249,15 @@ void ArgonautRobot::ConfigureMotorControllers()
     */
 
     // Some notes about applying motor configurations:
-    // - The classes/structs in YtaTalon.hpp have motor configuration objects in them.
+    // - The classes/structs in ArgonautTalon.hpp have motor configuration objects in them.
     // - Declaring stack local or class scope configuration objects are *separate and
-    //   distinct* from the configuration objects in the YtaTalon.hpp classes/structs.
+    //   distinct* from the configuration objects in the ArgonautTalon.hpp classes/structs.
     // - If a stack local or class scope configuration is applied, it will overwrite
     //   the configuration stored in the device.
-    // - Calling the methods provided by YtaTalon.hpp *never* update the configuration
+    // - Calling the methods provided by ArgonautTalon.hpp *never* update the configuration
     //   objects in the classes/structs.  To update those objects, retrieve the objects
-    //   via things like m_MotorConfiguration (for individual motors) or
-    //   GetMotorConfiguration() (for motor groups).
-    // - The classes/structs in YtaTalon.hpp provide ApplyConfiguration() routines.
+    //   via things like GetMotorConfiguration().
+    // - The classes/structs in ArgonautTalon.hpp provide ApplyConfiguration() routines.
     //   These can be used to directly apply a stack local or class scope configuration,
     //   or to apply an updated configuration when the configuration objects were directly
     //   modified.  Keep the notes above in mind when calling them.
@@ -317,10 +283,10 @@ void ArgonautRobot::ConfigureMotorControllers()
     //(void)m_pMotors->GetMotorObject(MOTORS_CAN_START_ID)->GetConfigurator().SetPosition(0.0_tr);
 
     // Configure a single motor
-    //(void)m_pMotor->m_MotorConfiguration.MotorOutput.WithNeutralMode(NeutralModeValue::Brake);
-    //(void)m_pMotor->m_MotorConfiguration.Feedback.WithSensorToMechanismRatio(135.0 / 1.0);
-    //(void)m_pMotor->m_MotorConfiguration.Slot0.WithKP(18.0).WithKI(0.0).WithKD(0.1);
-    //(void)m_pMotor->m_pTalonFx->GetConfigurator().SetPosition(0.0_tr);
+    //(void)m_pMotor->GetMotorConfiguration()->MotorOutput.WithNeutralMode(NeutralModeValue::Brake);
+    //(void)m_pMotor->GetMotorConfiguration()->Feedback.WithSensorToMechanismRatio(135.0 / 1.0);
+    //(void)m_pMotor->GetMotorConfiguration()->Slot0.WithKP(18.0).WithKI(0.0).WithKD(0.1);
+    //(void)m_pMotor->GetMotorObject()->GetConfigurator().SetPosition(0.0_tr);
     //m_pMotor->ApplyConfiguration();
 }
 
@@ -339,24 +305,25 @@ void ArgonautRobot::InitialStateSetup()
     // First reset any member data
     ResetMemberData();
 
+    // Configure the motor controllers
     ConfigureMotorControllers();
 
     // Stop/clear any timers, just in case
     // @todo: Make this a dedicated function.
     m_pMatchModeTimer->Stop();
     m_pMatchModeTimer->Reset();
-    m_pSafetyTimer->Stop();
-    m_pSafetyTimer->Reset();
-    
+
     // Just in case constructor was called before these were set (likely the case)
     m_AllianceColor = DriverStation::GetAlliance();
 
-    //Set the LEDs to the alliance color
-    m_pCandle->SetControl(m_EmptyAnimation);
-    SetLedsToAllianceColor();
+    // Set the LEDs to the alliance color
+    m_pLedController->SetLedsToAllianceColor();
 
-    // Indicate the camera thread can continue
-    RobotCamera::ReleaseThread();
+    // Set the limelight priority ID
+    if (m_bLimelightFound)
+    {
+        m_pLimelightCamera->SetPriorityId(LimelightCamera::TaggedFieldElement::ELEMENT_NONE, m_AllianceColor.value());
+    }
 
     // Clear the debug output pin
     m_pDebugOutput->Set(false);
@@ -364,15 +331,8 @@ void ArgonautRobot::InitialStateSetup()
     // Reset the heartbeat
     m_HeartBeat = 0U;
 
-    // Point the swerve modules straight.  With SparkMax, this (also) addresses
-    // an issue where setting position during constructors doesn't take effect.
+    // Point the swerve modules straight
     m_pSwerveDrive->HomeModules();
-
-    // With CTRE swerve electronics, sometimes the CANcoder appears to not be
-    // ready when constructors measure the absolute position.  The issue isn't
-    // entirely understood, but recalibrating here seems to provide stability.
-    // Note: This won't work if Neo swerve is used.
-    m_pSwerveDrive->RecalibrateModules();
 }
 
 
@@ -387,15 +347,10 @@ void ArgonautRobot::InitialStateSetup()
 void ArgonautRobot::TeleopInit()
 {
     RobotUtils::DisplayMessage("TeleopInit called.");
-    
-    // Autonomous should have left things in a known state, but
-    // just in case clear everything.
-    InitialStateSetup();
 
-    // Tele-op won't do detailed processing of the images unless instructed to
-    //RobotCamera::SetFullProcessing(false);
-    //RobotCamera::SetLimelightMode(RobotCamera::LimelightMode::DRIVER_CAMERA);
-    //RobotCamera::SetLimelightLedMode(RobotCamera::LimelightLedMode::PIPELINE);
+    // Autonomous should have left things in a known state, but just in case, clear everything.
+    CommandScheduler::GetInstance().CancelAll();
+    InitialStateSetup();
 
     // Start the mode timer for teleop
     m_pMatchModeTimer->Start();
@@ -417,19 +372,19 @@ void ArgonautRobot::TeleopPeriodic()
 
     HeartBeat();
 
-    if (Argonaut::Drive::Config::USE_SWERVE_DRIVE)
+    if (!m_bCameraAlignInProgress)
     {
-        if (!m_bCameraAlignInProgress)
-        {
-            SwerveDriveSequence();
-        }
+        SwerveDriveSequence();
     }
 
     //PneumaticSequence();
     
     CameraSequence();
 
-    UpdateSmartDashboard();
+    // These only do things if their configs are enabled.
+    // See ArgonautLed.hpp and ArgonautMusic.hpp for the controls.
+    LedSequence();
+    MusicSequence();
 }
 
 
@@ -446,7 +401,6 @@ void ArgonautRobot::UpdateSmartDashboard()
 
     units::time::second_t matchTime = 0.0_s;
     double batteryVoltage = DriverStation::GetBatteryVoltage();
-    std::string gameData = DriverStation::GetGameSpecificMessage();
 
     if (DriverStation::IsFMSAttached())
     {
@@ -457,82 +411,64 @@ void ArgonautRobot::UpdateSmartDashboard()
         matchTime = m_pMatchModeTimer->Get();
     }
 
-    struct HubShift
-    {
-        bool m_Transition;
-        bool m_bShift1;
-        bool m_bShift2;
-        bool m_bShift3;
-        bool m_bShift4;
-        bool m_EndGame;
-    };
-    constexpr const HubShift ACTIVE_FIRST = {true, true, false, true, false, true};
-    constexpr const HubShift INACTIVE_FIRST = {true, false, true, false, true, true};
-
-    static bool bGotGameData = false;
-    static HubShift allianceHubShift;
-
-    // Look for the game data to be ready
-    if (!bGotGameData)
-    {
-        bool bInactiveFirst = false;
-        if (!gameData.empty())
-        {
-            // For some reason the game data is who is *inactive* first (instead of active)
-            bInactiveFirst = (((gameData.at(0U) == 'R') && (m_AllianceColor == DriverStation::kRed)) ||
-                              ((gameData.at(0U) == 'B') && (m_AllianceColor == DriverStation::kBlue)));
-        }
-
-        allianceHubShift = bInactiveFirst ? INACTIVE_FIRST : ACTIVE_FIRST;
-        bGotGameData = true;
-    }
-
-    // Auto: 20_s, Teleop: 110_s, End Game: 30_s (Driver Control Total: 140_s or 2m20s)
-    constexpr const units::time::second_t TRANSITION_END_TIME_S = 130_s;
-    constexpr const units::time::second_t SHIFT_1_END_TIME_S = 105_s;
-    constexpr const units::time::second_t SHIFT_2_END_TIME_S = 80_s;
-    constexpr const units::time::second_t SHIFT_3_END_TIME_S = 55_s;
-    constexpr const units::time::second_t SHIFT_4_END_TIME_S = 30_s;
-
-    bool bHubActive = false;
-    units::time::second_t shiftTime = 0.0_s;
-    if (matchTime > TRANSITION_END_TIME_S)
-    {
-        bHubActive = allianceHubShift.m_Transition;
-        shiftTime = matchTime - TRANSITION_END_TIME_S;
-    }
-    else if (matchTime > SHIFT_1_END_TIME_S)
-    {
-        bHubActive = allianceHubShift.m_bShift1;
-        shiftTime = matchTime - SHIFT_1_END_TIME_S;
-    }
-    else if (matchTime > SHIFT_2_END_TIME_S)
-    {
-        bHubActive = allianceHubShift.m_bShift2;
-        shiftTime = matchTime - SHIFT_2_END_TIME_S;
-    }
-    else if (matchTime > SHIFT_3_END_TIME_S)
-    {
-        bHubActive = allianceHubShift.m_bShift3;
-        shiftTime = matchTime - SHIFT_3_END_TIME_S;
-    }
-    else if (matchTime > SHIFT_4_END_TIME_S)
-    {
-        bHubActive = allianceHubShift.m_bShift4;
-        shiftTime = matchTime - SHIFT_4_END_TIME_S;
-    }
-    else
-    {
-        bHubActive = allianceHubShift.m_EndGame;
-        shiftTime = matchTime;
-    }
-
     // Give the drive team some state information
     SmartDashboard::PutBoolean("RIO pins stable", m_bRioPinsStable);
+    SmartDashboard::PutBoolean("Limelight found", m_bLimelightFound);
     SmartDashboard::PutNumber("Battery voltage", batteryVoltage);
     SmartDashboard::PutNumber("Match time", matchTime.value());
-    SmartDashboard::PutNumber("Shift time", shiftTime.value());
-    SmartDashboard::PutBoolean("Hub active", bHubActive);
+}
+
+
+
+////////////////////////////////////////////////////////////////
+/// @method ArgonautRobot::LedSequence
+///
+/// This method contains the main workflow for controlling
+/// any LEDs on the robot.
+///
+////////////////////////////////////////////////////////////////
+void ArgonautRobot::LedSequence()
+{
+    if (Argonaut::Led::Config::MORSE_CODE_ENABLED)
+    {
+        m_pLedController->BlinkMorseCodePattern();
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////
+/// @method ArgonautRobot::MusicSequence
+///
+/// This method contains the main workflow for controlling
+/// any hardware capable of playing music (e.g. TalonFX).
+///
+////////////////////////////////////////////////////////////////
+void ArgonautRobot::MusicSequence()
+{
+    if (Argonaut::Music::Config::PLAYING_TONES_ENABLED)
+    {
+        // Note: The control mode for the motors can only be one
+        //       thing at a time.  Using a motor for acutal motion
+        //       will not work at the same time as playing tones.
+        static bool bPlayMusic = false;
+        if (m_pDriveController->DetectButtonChange(PLAY_MUSIC_BUTTON))
+        {
+            bPlayMusic = true;
+        }
+
+        if (bPlayMusic)
+        {
+            // Note: Change the nullptr to the TalonFX object for the
+            //       motor to play tones on!  This code will crash otherwise.
+
+            // When PlayTones() returns false, the music is over
+            if (!ArgonautMusicController::PlayTones(nullptr))
+            {
+                bPlayMusic = false;
+            }
+        }
+    }
 }
 
 
@@ -561,25 +497,24 @@ void ArgonautRobot::PneumaticSequence()
 ////////////////////////////////////////////////////////////////
 void ArgonautRobot::CameraSequence()
 {
+    // If the limelight wasn't found, don't attempt to do anything
+    if (!m_bLimelightFound)
+    {
+        return;
+    }
+
     if (m_pDriveController->GetButtonState(DRIVE_ALIGN_WITH_CAMERA_BUTTON))
     {
         m_bCameraAlignInProgress = true;
-        RobotCamera::AutonomousCamera::AlignToTargetSwerve(m_pPigeon->GetYaw().GetValue().value());
+        m_pLimelightCamera->AlignToTargetSwerve(m_LimelightDriveLambda, m_pPigeon->GetYaw().GetValue());
     }
     else
     {
         m_bCameraAlignInProgress = false;
     }
 
-    if (m_pDriveController->DetectButtonChange(LIMELIGHT_CAPTURE_REWIND_BUTTON) || (DriverStation::IsFMSAttached() && (DriverStation::GetMatchTime() < 2.0_s)))
-    {
-        static bool bTriggerCaptured = false;
-        if (!bTriggerCaptured)
-        {
-            RobotCamera::TriggerLimelightRewindCapture(160.0_s);
-            bTriggerCaptured = true;
-        }
-    }
+    m_pLimelightCamera->UpdateSmartDashboard();
+    SmartDashboard::PutBoolean("Limelight align", m_bCameraAlignInProgress);
 }
 
 
@@ -615,68 +550,30 @@ void ArgonautRobot::SwerveDriveSequence()
         m_pSwerveDrive->LockWheels();
     }
 
-    static Timer swerveJogTimer;
-    static units::time::second_t lastJogTimeStamp = 0.0_s;
-    static bool bJogInit = false;
-    static bool bJogFirstDirection = false;
-
-    if (!bJogInit)
-    {
-        swerveJogTimer.Reset();
-        swerveJogTimer.Start();
-        bJogInit = true;
-    }
-
-    if (m_pDriveController->GetButtonState(JOG_SWERVE_BUTTON))
-    {
-        constexpr const double JOG_SWERVE_ROTATE_SPEED = 0.10;
-        constexpr const units::time::second_t JOG_CHANGE_DIRECTION_TIME_S = 0.15_s;
-
-        units::time::second_t currentTimeStamp = swerveJogTimer.Get();
-        if ((currentTimeStamp - lastJogTimeStamp) > JOG_CHANGE_DIRECTION_TIME_S)
-        {
-            bJogFirstDirection = !bJogFirstDirection;
-            lastJogTimeStamp = currentTimeStamp;
-        }
-
-        if (bJogFirstDirection)
-        {
-            Translation2d translation = {units::meter_t(0.0), units::meter_t(0.0)};
-            m_pSwerveDrive->SetModuleStates(translation, JOG_SWERVE_ROTATE_SPEED, bFieldRelative, true);
-        }
-        else
-        {
-            Translation2d translation = {units::meter_t(0.0), units::meter_t(0.0)};
-            m_pSwerveDrive->SetModuleStates(translation, -JOG_SWERVE_ROTATE_SPEED, bFieldRelative, true);
-        }
-
-        return;
-    }
-
-    // The GetDriveX() and GetDriveYInput() functions refer to ***controller joystick***
+    // The GetDriveX() and GetDriveY() functions refer to ***controller joystick***
     // x and y axes.  Multiply by -1.0 here to keep the joystick input retrieval code common.
-    double translationAxis = RobotUtils::Trim(m_pDriveController->GetDriveYInput() * -1.0, JOYSTICK_TRIM_UPPER_LIMIT, JOYSTICK_TRIM_LOWER_LIMIT);
-    double strafeAxis = RobotUtils::Trim(m_pDriveController->GetDriveXInput() * -1.0, JOYSTICK_TRIM_UPPER_LIMIT, JOYSTICK_TRIM_LOWER_LIMIT);
-    double rotationAxis = RobotUtils::Trim(m_pDriveController->GetDriveRotateInput() * -1.0, JOYSTICK_TRIM_UPPER_LIMIT, JOYSTICK_TRIM_LOWER_LIMIT);
+    double translationAxis = RobotUtils::Trim(m_pDriveController->GetDriveYInput() * -1.0, DRIVE_TRIM_UPPER_LIMIT, DRIVE_TRIM_LOWER_LIMIT);
+    double strafeAxis = RobotUtils::Trim(m_pDriveController->GetDriveXInput() * -1.0, DRIVE_TRIM_UPPER_LIMIT, DRIVE_TRIM_LOWER_LIMIT);
+    double rotationAxis = RobotUtils::Trim(m_pDriveController->GetDriveRotateInput() * -1.0, DRIVE_TRIM_UPPER_LIMIT, DRIVE_TRIM_LOWER_LIMIT);
 
     // Override normal control if a fine positioning request is made
     switch (m_pDriveController->GetPovAsDirection())
     {
-        case Argonaut::Controller::PovDirections::POV_UP:
+        case DRIVE_CONTROLS_SWERVE_FORWARD_SLOW_POV:
         {
             translationAxis = SWERVE_DRIVE_SLOW_SPEED;
             strafeAxis = 0.0;
             rotationAxis = 0.0;
             break;
         }
-        case Argonaut::Controller::PovDirections::POV_DOWN:
+        case DRIVE_CONTROLS_SWERVE_REVERSE_SLOW_POV:
         {
             translationAxis = -SWERVE_DRIVE_SLOW_SPEED;
             strafeAxis = 0.0;
             rotationAxis = 0.0;
             break;
         }
-        case Argonaut::Controller::PovDirections::POV_LEFT:
+        case DRIVE_CONTROLS_SWERVE_LEFT_OR_CCW_SLOW_POV:
         {
             // Left/right POV control can either toggle strafe or rotation
             translationAxis = 0.0;
@@ -684,7 +581,7 @@ void ArgonautRobot::SwerveDriveSequence()
             rotationAxis = (Argonaut::Drive::Config::SWERVE_SLOW_USE_ROTATION_AXIS) ? (SWERVE_ROTATE_SLOW_SPEED) : (0.0);
             break;
         }
-        case Argonaut::Controller::PovDirections::POV_RIGHT:
+        case DRIVE_CONTROLS_SWERVE_RIGHT_OR_CW_SLOW_POV:
         {
             // Left/right POV control can either toggle strafe or rotation
             translationAxis = 0.0;
@@ -733,12 +630,17 @@ void ArgonautRobot::DisabledInit()
 {
     RobotUtils::DisplayMessage("DisabledInit called.");
 
-    // @todo: Shut off the limelight LEDs?
-    //RobotCamera::SetLimelightMode(RobotCamera::LimelightMode::DRIVER_CAMERA);
-    //RobotCamera::SetLimelightLedMode(RobotCamera::LimelightLedMode::PIPELINE);
+    // The check against teleop robot mode is because it represents
+    // the last active mode before DisabledInit() was called.  Only
+    // save a capture in matches and from teleop.
+    constexpr units::time::second_t TELEOP_REWIND_TIME_S = 160.0_s;
+    if (DriverStation::IsFMSAttached() && (m_RobotMode == RobotMode::ROBOT_MODE_TELEOP) && m_bLimelightFound)
+    {
+        m_pLimelightCamera->TriggerRewindCapture(TELEOP_REWIND_TIME_S);
+    }
 
-    // Turn the rainbow animation back on    
-    m_pCandle->SetControl(m_RainbowAnimation);
+    // Turn the rainbow animation back on
+    m_pLedController->SetAnimation(ArgonautLedController::LedAnimation::LED_RAINBOW_ANIMATION);
 }
 
 

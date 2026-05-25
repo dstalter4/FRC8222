@@ -15,7 +15,6 @@
 // (none)
 
 // C++ INCLUDES
-#include "RobotCamera.hpp"                  // for AlignToTargetSwerve()
 #include "RobotUtils.hpp"                   // for DisplayMessage()
 #include "ArgonautRobot.hpp"                // for robot class declaration
 #include "ArgonautRobotAutonomous.hpp"      // for autonomous declarations
